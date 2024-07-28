@@ -1,13 +1,23 @@
-import express from "express";
-import { Request, Response, NextFunction } from "express";
-import logger from "./config/logger";
+import cookieParser from 'cookie-parser';
+import express, { NextFunction, Request, Response } from "express";
 import { HttpError } from "http-errors";
-import authRouter from "./routes/auth";
+import "reflect-metadata";
+import logger from "./utils/logger";
+import authRouter from "./routes/authRoutes";
 
 const app = express();
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(express.static("public"));
+
+
+// Routes
+app.use('/auth', authRouter);
+
 app.get("/", (req, res) => {
-    res.send("Hello Express JS");
+    res.send("<h1>Amr Sonar Bangla 🎉</h1>");
 });
 
 app.use("/auth", authRouter);
@@ -16,7 +26,7 @@ app.use("/auth", authRouter);
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
     logger.error(err.message);
 
-    const statusCode = err.statusCode || 500;
+    const statusCode = err.statusCode ||err.status || 500;
 
     res.status(statusCode).json({
         errors: [

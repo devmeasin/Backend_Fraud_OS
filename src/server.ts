@@ -1,10 +1,12 @@
 import app from "./app";
 import { Config } from "./config";
-import logger from "./config/logger";
+import { AppDataSource } from "./config/data-source";
+import logger from "./utils/logger";
 
-const startServer = () => {
+const startServer = async () => {
     const PORT = Config.PORT;
     try {
+        await AppDataSource.initialize();
         logger.error("debug error message", {});
         app.listen(PORT, () => {
             logger.info(`server on running port ${PORT}`);
@@ -19,4 +21,4 @@ const startServer = () => {
     }
 };
 
-startServer();
+void startServer();

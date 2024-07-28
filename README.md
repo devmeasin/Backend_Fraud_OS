@@ -17,7 +17,7 @@ Add all necessary tool like ["Prettier", "ESlint", "Auto Testing", "git hook act
 - ⚡ setup testing using `jest` for automated testing.
 - 🚀 setup Express App with global error handler.
 
-- 📫 How to reach me. =>  devmeasin@gmail.com 🥚 [Coder Easin](https://demeasin.com)
+- 📫 How to reach me. =>  devmeasin@gmail.com 🥚 [Coder Easin](https://devmeasin.com)
 
 
 ## How to run
