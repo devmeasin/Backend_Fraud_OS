@@ -38,6 +38,38 @@ Please follow the below instructions to run different branches of this repositor
     ```
 4. Follow the corresponding branch's README file instruction to run code.
 
+### Dockerize your application following this command.
+
+4. create docker image using this command
+    ```sh
+    docker build -t fraudos:dev -f docker/dev/Dockerfile .
+    ```
+    or
+    ```sh
+    docker build -t fraudos:dev -f your_location/Dockerfile .
+    ```
+5. Run Docker image run for window system
+
+    ```sh
+        docker run --rm -it -v "%cd%":/usr/src/app -v /usr/src/app/node_modules --env-file "%cd%"/.env.dev -p 5001:5001 -e NODE_ENV=dev fraudos:dev
+    ```
+
+    Mac or Lunix system
+
+    ```sh
+        docker run --rm -it -v "$(pwd)":/usr/src/app -v /usr/src/app/node_modules --env-file "$(pwd)"/.env.dev -p 5001:5001 -e NODE_ENV=dev fraudos:dev
+    ```
+
+    Run PG DB in Docker
+
+    ```sh
+        docker run --rm --name fraudos-container -e POSTGRES_USER=root -e POSTGRES_PASSWORD=root -v fraudosdata:/var/lib/postgresql/data -p 5432:5432 -d postgres
+    ```
+    ### After PG DB Run create database manully in pg follow db name in env or env.dev file
+
+
+
+
 
 ## Authors
 -   [@devmeasin](https://www.github.com/devmeasin)
