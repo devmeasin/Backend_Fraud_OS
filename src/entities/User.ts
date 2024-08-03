@@ -1,4 +1,5 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn,OneToMany } from 'typeorm';
+import { OTP } from './OTP';
 
 @Entity()
 export class User extends BaseEntity {
@@ -37,6 +38,12 @@ export class User extends BaseEntity {
 
   @Column({default:'customer'})
   role: string;
+
+  @Column({ default: false })
+  isActive: boolean;
+
+  @OneToMany(() => OTP, otp => otp.user)
+  otps: OTP[];
 
   // Other fields like queryCount, balance, etc.
 }

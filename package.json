@@ -18,6 +18,7 @@
    "author": "Mohammad Easin <devmeasin@gmail.com>",
    "license": "ISC",
    "dependencies": {
+      "axios": "^1.7.3",
       "bcrypt": "^5.1.1",
       "cookie-parser": "^1.4.6",
       "dotenv": "^16.3.1",
