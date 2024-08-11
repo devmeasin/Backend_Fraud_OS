@@ -2,14 +2,20 @@ import bcrypt from "bcrypt";
 import createHttpError from "http-errors";
 import { Repository } from "typeorm";
 import { User } from "../entities/User";
-
 import { UserData } from "../types";
+import { Roles } from "../constants";
 
 export class UserService {
-
     constructor(private userRepository: Repository<User>) {}
 
-    async create({fullName,companyName,companyWebsite, email, phone, password }: UserData) {
+    async create({
+        fullName,
+        companyName,
+        companyWebsite,
+        email,
+        phone,
+        password,
+    }: UserData) {
         // check in user db
         const user = await this.userRepository.findOne({ where: { phone } });
         if (user) {
@@ -23,8 +29,13 @@ export class UserService {
 
         try {
             return await this.userRepository.save({
-                fullName,companyName,companyWebsite, email, phone,
+                fullName,
+                companyName,
+                companyWebsite,
+                email,
+                phone,
                 password: hasPassword,
+                role: Roles.CUSTOMER,
             });
         } catch (err) {
             const error = createHttpError(

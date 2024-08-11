@@ -1,49 +1,55 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn,OneToMany } from 'typeorm';
-import { OTP } from './OTP';
+import {
+    BaseEntity,
+    Column,
+    Entity,
+    PrimaryGeneratedColumn,
+    OneToMany,
+} from "typeorm";
+import { OTP } from "./OTP";
 
-@Entity()
+@Entity({ name: "users" })
 export class User extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  // @Column({ unique: true })
-  // username: string;
+    // @Column({ unique: true })
+    // username: string;
 
-  @Column()
-  fullName: string;
+    @Column()
+    fullName: string;
 
-  @Column()
-  companyName: string;
+    @Column()
+    companyName: string;
 
-  @Column()
-  companyWebsite: string;
+    @Column()
+    companyWebsite: string;
 
-  @Column({ unique: true })
-  email: string;
+    @Column({ unique: true })
+    email: string;
 
-  @Column({ unique: true })
-  phone: string;
+    @Column({ unique: true })
+    phone: string;
 
-  @Column()
-  password: string;
+    @Column()
+    password: string;
 
-  @Column({ default: false })
-  isEmailVerified: boolean;
+    @Column({ default: false })
+    isEmailVerified: boolean;
 
-  @Column({ default: false })
-  isPhoneVerified: boolean;
-  
-  @Column({ default: false })
-  isVerified: boolean;  // New flag for OTP verification
+    @Column({ default: false })
+    isPhoneVerified: boolean;
 
-  @Column({default:'customer'})
-  role: string;
+    @Column({ default: false })
+    isVerified: boolean; // New flag for OTP verification
 
-  @Column({ default: false })
-  isActive: boolean;
+    @Column({ default: "customer" })
+    role: string;
 
-  @OneToMany(() => OTP, otp => otp.user)
-  otps: OTP[];
+    @Column({ default: false })
+    isActive: boolean;
 
-  // Other fields like queryCount, balance, etc.
+    @OneToMany(() => OTP, (otp) => otp.user)
+    otps: OTP[];
+
+    // Other fields like queryCount, balance, etc.
 }
