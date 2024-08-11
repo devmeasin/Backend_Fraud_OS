@@ -3,7 +3,9 @@ import { config } from "dotenv";
 import path from "path";
 dotenv.config();
 
-config({ path: path.join(__dirname, `../../.env.${process.env.NODE_ENV}`) });
+config({
+    path: path.join(__dirname, `../../.env.${process.env.NODE_ENV || "dev"}`),
+});
 
 const {
     PORT,
@@ -26,5 +28,5 @@ export const Config = {
     DB_PASS,
     DB_NAME,
     REFRESH_TOKEN_SECRET,
-    JWKS_URI
+    JWKS_URI,
 };
