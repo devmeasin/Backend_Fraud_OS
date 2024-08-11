@@ -1,4 +1,4 @@
-import cookieParser from 'cookie-parser';
+import cookieParser from "cookie-parser";
 import express, { NextFunction, Request, Response } from "express";
 import { HttpError } from "http-errors";
 import "reflect-metadata";
@@ -12,9 +12,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
 
-
 // Routes
-app.use('/auth', authRouter);
+app.use("/auth", authRouter);
 
 app.get("/", (req, res) => {
     res.send("<h1>Amr Sonar Bangla 🎉</h1>");
@@ -26,7 +25,7 @@ app.use("/auth", authRouter);
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
     logger.error(err.message);
 
-    const statusCode = err.statusCode ||err.status || 500;
+    const statusCode = err.statusCode || err.status || 500;
 
     res.status(statusCode).json({
         errors: [
