@@ -1,37 +1,85 @@
 import express, { NextFunction, Request, Response } from "express";
-import { AppDataSource } from "../config/data-source";
 import logger from "../utils/logger";
-// import { RefreshToken } from "../entity/RefreshToken";
-import { User } from "../entities/User";
-// import authenticate from "../middlewares/authenticate";
-// import { CredentialService } from "../services/CredentialService";
-// import { TokenService } from "../services/TokenService";
-// import { AuthRequest } from "../types";
-// import loginValidator from "../validator/login-validator";
-// import resgisterValidator from "../validator/register-validator";
+
+// Controller imports
 import { AuthController } from "../controllers/AuthController";
-import { UserService } from "../services/UserService";
-// import { container } from "../di-container";
+
+// Service imports
+import { TokenService } from "../services/tokenService";
+import { UserService } from "../services/userService";
+import { CredentialService } from "../services/credentialService";
+import { OTPService } from "../services/OTPService";
+
+// Middleware imports
+import authenticate from "../middlewares/authenticate";
+import parseRefreshToken from "../middlewares/parseRefreshToken";
+import valiadateRefreshToken from "../middlewares/valiadateRefreshToken";
+
+// Type imports
+import { AuthRequest } from "../types";
 
 const router = express.Router();
 
-const userRepository = AppDataSource.getRepository(User);
-// const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
-const userService = new UserService(userRepository);
-// const tokenService = new TokenService(refreshTokenRepository);
-// const credentialService = new CredentialService();
-const authController = new AuthController(userService, logger);
+const userService = new UserService();
+const otpService = new OTPService(logger);
+const tokenService = new TokenService();
+const credentialService = new CredentialService(logger);
+const authController = new AuthController(
+    userService,
+    logger,
+    tokenService,
+    credentialService,
+    otpService,
+);
+// const otpController = new OTPController(otpService, userService, logger);
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
-router.post("/register", (req : Request, res: Response, next: NextFunction) =>
-    authController.register(req, res, next)
+router.post("/register", (req: Request, res: Response, next: NextFunction) =>
+    authController.register(req, res, next),
 );
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
-// router.post("/login",loginValidator, (req : Request, res: Response, next: NextFunction) =>
-//     authController.login(req, res, next)
+router.post("/login", (req: Request, res: Response, next: NextFunction) =>
+    authController.login(req, res, next),
+);
+
+router.get("/self", authenticate, (req: Request, res: Response) =>
+    authController.self(req as AuthRequest, res),
+);
+
+router.post(
+    "/refresh",
+    valiadateRefreshToken,
+    (req: Request, res: Response, next: NextFunction) =>
+        authController.refresh(req as AuthRequest, res, next),
+);
+
+router.post(
+    "/logout",
+    authenticate,
+    parseRefreshToken,
+    (req: Request, res: Response, next: NextFunction) =>
+        authController.logout(req as AuthRequest, res, next),
+);
+
+router.post(
+    "/forget-password",
+    (req: Request, res: Response, next: NextFunction) =>
+        authController.forgotPassword(req as AuthRequest, res, next),
+);
+
+router.post("/verify-otp", (req: Request, res: Response, next: NextFunction) =>
+    authController.verifyOTP(req as AuthRequest, res, next),
+);
+
+router.post(
+    "/reset-password",
+    (req: Request, res: Response, next: NextFunction) =>
+        authController.verifyOTP(req as AuthRequest, res, next),
+);
+
+// router.post(
+//     "/generate-otp",
+//     (req: Request, res: Response, next: NextFunction) =>
+//         otpController.generateOTP(req, res, next),
 // );
-
-
 
 export default router;

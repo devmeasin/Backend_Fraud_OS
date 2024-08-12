@@ -10,6 +10,7 @@ config({
 const {
     PORT,
     NODE_ENV,
+    DB_URI,
     DB_HOST,
     DB_PORT,
     DB_USERNAME,
@@ -22,6 +23,7 @@ const {
 export const Config = {
     PORT,
     NODE_ENV,
+    DB_URI,
     DB_HOST,
     DB_PORT,
     DB_USERNAME,

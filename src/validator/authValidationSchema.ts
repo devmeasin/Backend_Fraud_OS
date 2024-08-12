@@ -65,4 +65,38 @@ export const loginSchema: Schema = {
     },
 };
 
+export const forgetPasswordSchema: Schema = {
+    phone: {
+        in: ["body"],
+        isMobilePhone: {
+            options: ["bn-BD"],
+        },
+        errorMessage: "Invalid phone number format for BD",
+    },
+};
+
+export const resetPasswordSchema: Schema = {
+    phone: {
+        in: ["body"],
+        isMobilePhone: {
+            options: ["bn-BD"],
+        },
+        errorMessage: "Invalid phone number format for BD",
+    },
+    otp: {
+        in: ["body"],
+        isLength: {
+            options: { min: 4, max: 4 },
+        },
+        errorMessage: "OTP",
+    },
+    newPassword: {
+        in: ["body"],
+        isLength: {
+            options: { min: 8 },
+            errorMessage: "Password must be at least 8 characters long",
+        },
+    },
+};
+
 // Define other schemas like OTP verification, password reset, etc.

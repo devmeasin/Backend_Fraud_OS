@@ -1,12 +1,13 @@
 import app from "./app";
 import { Config } from "./config";
-import { AppDataSource } from "./config/data-source";
+import connectDB from "./config/db-config";
 import logger from "./utils/logger";
 
 const startServer = async () => {
     const PORT = Config.PORT;
     try {
-        await AppDataSource.initialize();
+        // await AppDataSource.initialize();
+        await connectDB();
         logger.error("debug error message", {});
         app.listen(PORT, () => {
             logger.info(`server on running port ${PORT}`);
