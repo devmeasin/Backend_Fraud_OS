@@ -21,6 +21,9 @@ export interface UserData_delPassword {
     isVerified?: false;
     role?: "customer";
     isActive?: false;
+    createdAt?: Date;
+    updatedAt?: Date;
+    __v?: number;
 }
 
 export interface RegisterUserRequest extends Request {
@@ -29,9 +32,9 @@ export interface RegisterUserRequest extends Request {
 
 export interface AuthRequest extends Request {
     auth: {
-        sub: number;
+        sub: string;
         role: string;
-        id?: string;
+        id: string;
     };
 }
 

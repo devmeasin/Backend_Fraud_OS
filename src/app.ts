@@ -4,6 +4,7 @@ import { HttpError } from "http-errors";
 import "reflect-metadata";
 import logger from "./utils/logger";
 import authRouter from "./routes/authRoutes";
+import qcdataRouter from "./routes/QCDataRoutes";
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/auth", authRouter);
+app.use("/ecom", qcdataRouter);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
