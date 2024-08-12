@@ -3,56 +3,46 @@ import createHttpError from "http-errors";
 import { JwtPayload, sign } from "jsonwebtoken";
 import path from "path";
 import { Config } from "../config";
-import { Repository } from "typeorm";
-import { User } from "../entities/User";
-import { RefreshToken } from "../entities/RefreshToken";
+import { IUser } from "../models/userModel"; // Import the User model
+import { RefreshTokenModel, IRefreshToken } from "../models/refreshToken"; // Import the RefreshToken model
 
 export class TokenService {
-    constructor(private refreshTokenRepository: Repository<RefreshToken>) {}
+    constructor(private refreshTokenModel = RefreshTokenModel) {}
 
-    generateAccessToken(payload: JwtPayload) {
+    generateAccessToken(payload: JwtPayload): string {
         let privateKey: Buffer;
         try {
             privateKey = fs.readFileSync(
                 path.join(__dirname, "../../certs/private.pem"),
             );
         } catch (err) {
-            const error = createHttpError(
-                500,
-                "Error while reading private key",
-            );
-            throw error;
+            throw createHttpError(500, "Error while reading private key");
         }
 
-        const accessToken = sign(payload, privateKey, {
+        return sign(payload, privateKey, {
             algorithm: "RS256",
             expiresIn: "1h",
-            issuer: "auth-service",
         });
-        return accessToken;
     }
 
-    generateRefreshToken(payload: JwtPayload) {
-        const refreshToken = sign(payload, Config.REFRESH_TOKEN_SECRET!, {
+    generateRefreshToken(payload: JwtPayload): string {
+        return sign(payload, Config.REFRESH_TOKEN_SECRET!, {
             algorithm: "HS256",
             expiresIn: "1y",
-            issuer: "auth-service",
             jwtid: String(payload.jwtid),
         });
-
-        return refreshToken;
     }
 
-    // presist refresh token in database
-    async persistRefreshToken(user: User) {
-        const newRefreshToken = await this.refreshTokenRepository.save({
+    async persistRefreshToken(user: IUser): Promise<IRefreshToken> {
+        const newRefreshToken = new this.refreshTokenModel({
             expiredAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
-            user: user,
+            user: user._id, // Assuming `user` is an object with `_id` property
         });
-        return newRefreshToken;
+
+        return await newRefreshToken.save();
     }
 
-    async deleteRefreshToken(tokenId: number) {
-        return await this.refreshTokenRepository.delete({ id: tokenId });
+    async deleteRefreshToken(tokenId: string): Promise<void> {
+        await this.refreshTokenModel.deleteMany({ user: tokenId }).exec();
     }
 }

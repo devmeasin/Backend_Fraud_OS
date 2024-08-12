@@ -1,13 +1,10 @@
 import bcrypt from "bcrypt";
 import createHttpError from "http-errors";
-import { Repository } from "typeorm";
-import { User } from "../entities/User";
-import { UserData } from "../types";
 import { Roles } from "../constants";
+import { IUser, User } from "../models/userModel";
+import { UserData } from "../types";
 
 export class UserService {
-    constructor(private userRepository: Repository<User>) {}
-
     async create({
         fullName,
         companyName,
@@ -15,41 +12,41 @@ export class UserService {
         email,
         phone,
         password,
-    }: UserData) {
-        // check in user db
-        const user = await this.userRepository.findOne({ where: { phone } });
-        if (user) {
-            const err = createHttpError(400, "Phone already Register!");
-            throw err;
+    }: UserData): Promise<IUser> {
+        const existingUserByPhone = await User.findOne({ phone });
+        const existingUserByEmail = await User.findOne({ email });
+
+        if (existingUserByPhone || existingUserByEmail) {
+            throw createHttpError(400, "Phone already registered!");
         }
-        // passWord Has saltRound
-        const saltRounds = 10;
-        // password hash func here
-        const hasPassword = await bcrypt.hash(password, saltRounds);
+
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         try {
-            return await this.userRepository.save({
+            const newUser = new User({
                 fullName,
                 companyName,
                 companyWebsite,
                 email,
                 phone,
-                password: hasPassword,
+                password: hashedPassword,
                 role: Roles.CUSTOMER,
             });
+
+            return await newUser.save();
         } catch (err) {
-            const error = createHttpError(
+            throw createHttpError(
                 500,
-                "faild to store the data in the db",
+                "Failed to store the data in the database",
             );
-            throw error;
         }
     }
 
-    async findByPhone(phone: string) {
-        return await this.userRepository.findOne({ where: { phone } });
+    async findByPhone(phone: string): Promise<IUser | null> {
+        return await User.findOne({ phone }).exec();
     }
-    async findById(id: number) {
-        return await this.userRepository.findOne({ where: { id } });
+
+    async findById(id: string): Promise<IUser | null> {
+        return await User.findById(id).exec();
     }
 }
