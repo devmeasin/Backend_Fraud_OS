@@ -23,12 +23,13 @@ export class OTPService {
         return otp;
     }
 
-    async sendOTP(phone: string, otp: string): Promise<void> {
+    // async sendOTP(phone: string, otp: string): Promise<void> {
+    sendOTP(phone: string, otp: string) {
         // Logic to send the OTP to the user's phone via SMS
         this.logger.info("OTP sent to phone", { phone, otp });
 
         // Example of sending OTP via a fake SMS service (replace with actual implementation)
-        console.log(`Sending OTP ${otp} to phone number ${phone}`);
+        // console.log(`Sending OTP ${otp} to phone number ${phone}`);
     }
 
     async verifyOTP(user: UserDocument, otp: string): Promise<boolean> {

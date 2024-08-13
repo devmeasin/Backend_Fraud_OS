@@ -3,9 +3,14 @@ import { checkSchema, validationResult } from "express-validator";
 import createHttpError from "http-errors";
 import { JwtPayload } from "jsonwebtoken";
 import { Logger } from "winston";
-import { CredentialService } from "../services/credentialService";
-import { TokenService } from "../services/tokenService";
+
+// import services
 import { UserService } from "../services/userService";
+import { TokenService } from "../services/tokenService";
+import { CredentialService } from "../services/credentialService";
+import { OTPService } from "../services/OTPService";
+
+// import types
 import { AuthRequest, UserData_delPassword } from "../types";
 import {
     forgetPasswordSchema,
@@ -13,7 +18,6 @@ import {
     registerSchema,
     resetPasswordSchema,
 } from "../validator/authValidationSchema";
-import { OTPService } from "../services/OTPService";
 
 export class AuthController {
     constructor(
@@ -265,7 +269,8 @@ export class AuthController {
             }
 
             const otp = await this.otpService.generateOTP(user);
-            await this.otpService.sendOTP(phone, otp);
+            // await this.otpService.sendOTP(phone, otp);
+            this.otpService.sendOTP(phone, otp);
 
             this.logger.info("OTP sent for password reset", { phone });
 

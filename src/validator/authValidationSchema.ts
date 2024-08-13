@@ -29,8 +29,10 @@ export const registerSchema: Schema = {
 
     email: {
         in: ["body"],
-        isEmail: true,
-        errorMessage: "Invalid email format",
+        trim: true, // This trims the whitespace from the input
+        isEmail: {
+            errorMessage: "Invalid email format",
+        },
     },
     phone: {
         in: ["body"],
