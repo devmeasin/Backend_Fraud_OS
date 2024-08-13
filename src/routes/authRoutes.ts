@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import logger from "../utils/logger";
 
 // Controller imports
-import { AuthController } from "../controllers/AuthController";
+import { AuthController } from "../controllers/authController";
 
 // Service imports
 import { TokenService } from "../services/tokenService";

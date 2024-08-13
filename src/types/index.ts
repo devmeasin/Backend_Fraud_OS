@@ -46,3 +46,19 @@ export type AuthCookie = {
 export interface IRefreshTokenPayload {
     id: string;
 }
+
+// courier data type
+
+export type RedXData = {
+    totalParcels: string;
+    deliveredParcels: string;
+    returnPercentage: string;
+    customerSegment: string;
+};
+
+export type TRedXData = {
+    code: number;
+    isError: boolean;
+    message: string;
+    data: RedXData;
+};

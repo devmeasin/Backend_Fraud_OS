@@ -1,26 +1,23 @@
 import createJWKSMock from "mock-jwks";
 import request from "supertest";
-import { DataSource } from "typeorm";
+import mongoose from "mongoose";
 import app from "../../src/app";
-import { AppDataSource } from "../../src/config/data-source";
 import { Roles } from "../../src/constants";
-import { User } from "../../src/entities/User";
+import { User } from "../../src/models/userModel"; // Assuming you have a User Mongoose model
+import { Config } from "../../src/config";
 
 describe("GET /auth/self", () => {
-    // setup db conncetion
-    let connection: DataSource;
+    // Setup MongoDB connection
     let jwks: ReturnType<typeof createJWKSMock>;
+
     beforeAll(async () => {
         jwks = createJWKSMock("http://localhost:5001");
-        connection = await AppDataSource.initialize();
+        await mongoose.connect(Config.DB_URI as string);
     });
 
     beforeEach(async () => {
-        // Database truncate
-        // await truncateTables(connection);
-        await connection.dropDatabase();
-        await connection.synchronize();
-
+        // Clear the database before each test
+        await User.deleteMany({});
         jwks.start();
     });
 
@@ -29,58 +26,11 @@ describe("GET /auth/self", () => {
     });
 
     afterAll(async () => {
-        await connection.destroy();
+        await mongoose.connection.close();
     });
 
     describe("Given all fields", () => {
-        test("should be return 200 status code", async () => {
-            // Arrange
-            const accessToken = jwks.token({
-                sub: "1",
-                role: Roles.CUSTOMER,
-            });
-
-            // Act
-            const response = await request(app)
-                .get("/auth/self")
-                .set("Cookie", [`accessToken=${accessToken};`])
-                .send();
-            // Assart
-            expect(response.statusCode).toBe(200);
-        });
-
-        test("should be return user data", async () => {
-            // Arrange
-            const userData = {
-                fullName: "Mohammad Easin",
-                companyName: "Demo Company",
-                companyWebsite: "devsaim.com",
-                phone: "01850463208",
-                email: "devmeasin@gmail.com",
-                password: "********",
-            };
-            const userRepository = connection.getRepository(User);
-            const user = await userRepository.save({
-                ...userData,
-                role: Roles.CUSTOMER,
-            });
-
-            // Act
-            const accessToken = jwks.token({
-                sub: String(user.id),
-                role: user.role,
-            });
-            const response = await request(app)
-                .get("/auth/self")
-                .set("Cookie", [`accessToken=${accessToken};`])
-                .send();
-
-            // Assart
-            expect(response.statusCode).toBe(200);
-            expect(response.body.id).toBe(user.id);
-        });
-
-        test("should be not return password field", async () => {
+        test("should return 200 status code", async () => {
             // Arrange
             const userData = {
                 fullName: "Mohammad Easin",
@@ -91,15 +41,46 @@ describe("GET /auth/self", () => {
                 password: "********",
             };
 
-            const userRepository = connection.getRepository(User);
-            const user = await userRepository.save({
+            const user = await User.create({
+                ...userData,
+                role: Roles.CUSTOMER,
+            });
+
+            // Arrange
+            const accessToken = jwks.token({
+                sub: String(user._id),
+                role: Roles.CUSTOMER,
+            });
+
+            // Act
+            const response = await request(app)
+                .get("/auth/self")
+                .set("Cookie", [`accessToken=${accessToken};`])
+                .send();
+
+            // Assert
+            expect(response.statusCode).toBe(200);
+        });
+
+        test("should return user data", async () => {
+            // Arrange
+            const userData = {
+                fullName: "Mohammad Easin",
+                companyName: "Demo Company",
+                companyWebsite: "devsaim.com",
+                phone: "01850463208",
+                email: "devmeasin@gmail.com",
+                password: "********",
+            };
+
+            const user = await User.create({
                 ...userData,
                 role: Roles.CUSTOMER,
             });
 
             // Act
             const accessToken = jwks.token({
-                sub: String(user.id),
+                sub: String(user._id),
                 role: user.role,
             });
 
@@ -107,7 +88,40 @@ describe("GET /auth/self", () => {
                 .get("/auth/self")
                 .set("Cookie", [`accessToken=${accessToken};`])
                 .send();
-            // Assart
+
+            // Assert
+            expect(response.statusCode).toBe(200);
+            expect(response.body._id).toBe(String(user._id));
+        });
+
+        test("should not return password field", async () => {
+            // Arrange
+            const userData = {
+                fullName: "Mohammad Easin",
+                companyName: "Demo Company",
+                companyWebsite: "devsaim.com",
+                phone: "01850463208",
+                email: "devmeasin@gmail.com",
+                password: "********",
+            };
+
+            const user = await User.create({
+                ...userData,
+                role: Roles.CUSTOMER,
+            });
+
+            // Act
+            const accessToken = jwks.token({
+                sub: String(user._id),
+                role: user.role,
+            });
+
+            const response = await request(app)
+                .get("/auth/self")
+                .set("Cookie", [`accessToken=${accessToken};`])
+                .send();
+
+            // Assert
             expect(response.body).not.toHaveProperty("password");
         });
     });

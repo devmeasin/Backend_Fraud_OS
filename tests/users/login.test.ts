@@ -1,25 +1,20 @@
 import request from "supertest";
-import { DataSource } from "typeorm";
 import app from "../../src/app";
-import { AppDataSource } from "../../src/config/data-source";
+import mongoose from "mongoose";
+import { Config } from "../../src/config";
 
 describe("POST /auth/login", () => {
     // setup db conncetion
-    let connection: DataSource;
-
     beforeAll(async () => {
-        connection = await AppDataSource.initialize();
+        await mongoose.connect(Config.DB_URI as string);
     });
 
     beforeEach(async () => {
-        // Database truncate
-        // await truncateTables(connection);
-        await connection.dropDatabase();
-        await connection.synchronize();
+        await mongoose.connection.db.dropDatabase();
     });
 
     afterAll(async () => {
-        await connection.destroy();
+        await mongoose.disconnect();
     });
 
     describe("Given all fields", () => {
