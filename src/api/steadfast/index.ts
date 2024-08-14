@@ -18,7 +18,7 @@ export const Steadfast_Data = async (customer_number: string) => {
                 },
             },
         );
-        return response.data as [];
+        return { code: response.status, data: response.data };
     } catch (error) {
         logger.error(
             "Data fetch network Error fraud check! from Steadfast",

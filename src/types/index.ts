@@ -85,6 +85,7 @@ export interface IPathaoCustomerData {
     customer_country_name: string;
 }
 export interface IPathaoCustomerCheckData {
+    code: number;
     success_rate: number;
     fraud_level: number;
     fraud_count: number;
@@ -92,4 +93,60 @@ export interface IPathaoCustomerCheckData {
     is_new: boolean;
     address_book: [];
     customer: IPathaoCustomerData;
+}
+
+interface CustomerRecord {
+    customer_name: string;
+    customer_phone: string;
+    delivered: string;
+    returned: string;
+}
+
+export interface IPaperflyApiResponse {
+    code: number;
+    draw: number;
+    page: number;
+    limit: number;
+    totalFiltered: number;
+    totalRecords: number;
+    records: CustomerRecord[];
+}
+
+interface IPaperflyUser {
+    user_type: string;
+    full_name: string;
+    category: string;
+    merchant_code: string;
+    rate_chart_id: string;
+    email: string;
+    phone_number: string;
+    verified: boolean;
+    complete_account_info: boolean;
+    authed: boolean;
+    user_name: string;
+    password: string;
+    otp_verification_needed: boolean;
+    token: string;
+    app_codename: string;
+    queries: any[]; // Adjust type if more specific type information is available
+}
+
+export interface IPaperflyApiloginResponse {
+    username: string;
+    password: string;
+    otp_verification_needed: boolean;
+    token: string;
+    type: string;
+    emp_code: string;
+    privilege_id: string;
+    user_role_id: string;
+    sip_call_permission: string;
+    delivery_service: string;
+    delivery_supervisor: string;
+    counter_operation: string;
+    express_delivery: string;
+    point_codes: string;
+    sip_config: string;
+    user: IPaperflyUser;
+    only_delivery_officer: string;
 }
