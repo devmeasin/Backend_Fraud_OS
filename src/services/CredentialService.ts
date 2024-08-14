@@ -13,6 +13,7 @@ export class CredentialService {
         user: UserDocument,
         newPassword: string,
     ): Promise<void> {
+        user.isPhoneVerified = true;
         user.password = await this.hashPassword(newPassword); // Hash the new password
         await user.save(); // Save the updated user to the database
         this.logger.info("Password updated successfully", { userId: user._id });

@@ -1,8 +1,9 @@
 import bcrypt from "bcrypt";
 import createHttpError from "http-errors";
 import { Roles } from "../constants";
-import { IUser, User } from "../models/userModel";
+import { IMerchantInfo, IUser, User } from "../models/userModel";
 import { UserData } from "../types";
+import logger from "../utils/logger";
 
 export class UserService {
     async create({
@@ -38,6 +39,36 @@ export class UserService {
             throw createHttpError(
                 500,
                 "Failed to store the data in the database",
+            );
+        }
+    }
+
+    async updatePathaoMerchantInfo(
+        userId: string,
+        newMerchantInfo: IMerchantInfo,
+    ) {
+        try {
+            const existingUser = await User.findById(userId).exec();
+
+            if (!existingUser) {
+                throw createHttpError(404, "User not found!");
+            }
+
+            const updatedUser = await User.findOneAndUpdate(
+                { _id: userId },
+                {
+                    isPhoneVerified: true,
+                    pathaoMerchantInfo: newMerchantInfo,
+                },
+                { new: true },
+            ).exec();
+
+            return updatedUser;
+        } catch (error) {
+            logger.error("Error updating Pathao merchant info:", error);
+            throw createHttpError(
+                500,
+                "Error while updating Pathao merchant info!",
             );
         }
     }
