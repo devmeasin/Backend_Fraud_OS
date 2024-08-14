@@ -10,7 +10,7 @@ export const RedX_Data = async (customer_number: string) => {
         );
         return response.data as TRedXData;
     } catch (error) {
-        logger.error("Data fetch network error");
+        logger.error("Data fetch network error from RedX");
         throw new Error("Data fetch network error!");
     }
 };

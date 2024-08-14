@@ -62,3 +62,34 @@ export type TRedXData = {
     message: string;
     data: RedXData;
 };
+
+export interface LoginResponse {
+    token_type: string;
+    expires_in: number;
+    access_token: string;
+    refresh_token: string;
+    expires_at: number;
+    // Add other properties as needed
+}
+
+export interface IPathaoCustomerData {
+    customer_id: number;
+    customer_number: string;
+    successful_delivery: number;
+    total_delivery: number;
+    fraud_level: number;
+    fraud_count: number;
+    fraud_reason: null;
+    customer_email: null;
+    customer_country_id: number;
+    customer_country_name: string;
+}
+export interface IPathaoCustomerCheckData {
+    success_rate: number;
+    fraud_level: number;
+    fraud_count: number;
+    fraud_reason: string;
+    is_new: boolean;
+    address_book: [];
+    customer: IPathaoCustomerData;
+}

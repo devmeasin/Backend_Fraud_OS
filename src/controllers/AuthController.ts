@@ -10,6 +10,8 @@ import { TokenService } from "../services/tokenService";
 import { CredentialService } from "../services/credentialService";
 import { OTPService } from "../services/OTPService";
 
+import { processUserRegistration } from "../api/pathao/registerService";
+
 // import types
 import { AuthRequest, UserData_delPassword } from "../types";
 import {
@@ -18,6 +20,7 @@ import {
     registerSchema,
     resetPasswordSchema,
 } from "../validator/authValidationSchema";
+import { verifyOTPShema } from "../validator/VerifyOTPShema";
 
 export class AuthController {
     constructor(
@@ -62,7 +65,14 @@ export class AuthController {
                 phone,
                 password,
             });
+
             this.logger.info("User has been registered", { id: user._id });
+
+            if (!user.isPhoneVerified) {
+                const otp = await this.otpService.generateOTP(user);
+                // await this.otpService.sendOTP(phone, otp);
+                await this.otpService.sendOTP(phone as string, otp);
+            }
 
             const payload: JwtPayload = {
                 sub: String(user._id),
@@ -115,6 +125,12 @@ export class AuthController {
             const user = await this.userService.findByPhone(phone);
             if (!user) {
                 throw createHttpError(400, "Phone or password is incorrect!");
+            }
+
+            if (!user.isPhoneVerified) {
+                const otp = await this.otpService.generateOTP(user);
+                // await this.otpService.sendOTP(phone, otp);
+                await this.otpService.sendOTP(phone, otp);
             }
 
             const isMatchPassword =
@@ -270,7 +286,7 @@ export class AuthController {
 
             const otp = await this.otpService.generateOTP(user);
             // await this.otpService.sendOTP(phone, otp);
-            this.otpService.sendOTP(phone, otp);
+            await this.otpService.sendOTP(phone, otp);
 
             this.logger.info("OTP sent for password reset", { phone });
 
@@ -283,11 +299,11 @@ export class AuthController {
     // verify otp
 
     async verifyOTP(req: Request, res: Response, next: NextFunction) {
-        // await checkSchema(forgetPasswordSchema).run(req);
-        // const errors = validationResult(req);
-        // if (!errors.isEmpty()) {
-        //     return res.status(400).json({ errors: errors.array() });
-        // }
+        await checkSchema(verifyOTPShema).run(req);
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
         const { phone, otp }: { phone: string; otp: string } = req.body;
 
@@ -300,6 +316,14 @@ export class AuthController {
             const isOtpValid = await this.otpService.verifyOTP(user, otp);
             if (!isOtpValid) {
                 throw createHttpError(400, "Invalid or expired OTP");
+            }
+
+            if (isOtpValid) {
+                const merchantInfoData = await processUserRegistration(user);
+                await this.userService.updatePathaoMerchantInfo(
+                    user._id,
+                    merchantInfoData,
+                );
             }
 
             this.logger.info("OTP verified for password reset", { phone });

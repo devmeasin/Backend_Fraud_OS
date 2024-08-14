@@ -12,7 +12,7 @@ export class OTPService {
 
         // Store the OTP in the database with an expiration time (e.g., 10 minutes)
         const otpEntry = new OTP({
-            userId: user._id,
+            user: user._id,
             otp,
             expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
         });
@@ -24,17 +24,17 @@ export class OTPService {
     }
 
     // async sendOTP(phone: string, otp: string): Promise<void> {
-    sendOTP(phone: string, otp: string) {
+    async sendOTP(phone: string, otp: string) {
         // Logic to send the OTP to the user's phone via SMS
         this.logger.info("OTP sent to phone", { phone, otp });
 
         // Example of sending OTP via a fake SMS service (replace with actual implementation)
-        // console.log(`Sending OTP ${otp} to phone number ${phone}`);
+        console.log(`Sending OTP ${otp} to phone number ${phone}`);
     }
 
     async verifyOTP(user: UserDocument, otp: string): Promise<boolean> {
         // Find the OTP in the database and check if it matches
-        const otpEntry = await OTP.findOne({ userId: user._id, otp });
+        const otpEntry = await OTP.findOne({ user: user._id, otp });
 
         if (!otpEntry) {
             this.logger.warn("OTP verification failed: OTP not found", {

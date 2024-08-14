@@ -20,7 +20,10 @@ export const Steadfast_Data = async (customer_number: string) => {
         );
         return response.data as [];
     } catch (error) {
-        logger.error("Data fetch network Error fraud check!", error);
-        throw new Error("Data fetch network Error fraud check!");
+        logger.error(
+            "Data fetch network Error fraud check! from Steadfast",
+            error,
+        );
+        throw new Error("Data fetch network Error fraud check! from Steadfast");
     }
 };

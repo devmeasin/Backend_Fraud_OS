@@ -1,6 +1,17 @@
 import mongoose, { Document, Schema } from "mongoose";
 
+export interface IMerchantInfo extends Document {
+    owner_name: string;
+    owner_number: string;
+    owner_email: string;
+    name: string;
+    merchant_id: number;
+    password: string;
+    country_id: string;
+}
+
 export interface IUser extends Document {
+    _id: string;
     fullName: string;
     companyName?: string;
     companyWebsite?: string;
@@ -8,10 +19,11 @@ export interface IUser extends Document {
     email?: string;
     password: string;
     role: "customer" | "admin" | "manager";
-    isActive: boolean;
+    status: string;
     isVerified: boolean;
     isPhoneVerified: boolean;
     isEmailVerified: boolean;
+    pathaoMerchantInfo?: IMerchantInfo;
     currentPackage?: Schema.Types.ObjectId;
     remainingRequests: number;
 }
@@ -24,7 +36,11 @@ const userSchema = new Schema<IUser>(
         phone: { type: String, required: true, unique: true },
         email: { type: String, unique: true },
         password: { type: String, required: true },
-        isActive: { type: Boolean, default: true },
+        status: {
+            type: String,
+            enum: ["active", "blocked", "pending"],
+            default: "active",
+        },
         isEmailVerified: { type: Boolean, default: false },
         isPhoneVerified: { type: Boolean, default: false },
         isVerified: { type: Boolean, default: false }, // Flag for OTP verification
@@ -32,6 +48,27 @@ const userSchema = new Schema<IUser>(
             type: String,
             enum: ["customer", "admin", "manager"],
             default: "customer",
+        },
+        pathaoMerchantInfo: {
+            type: {
+                owner_name: String,
+                owner_number: String,
+                owner_email: String,
+                name: String,
+                merchant_id: Number,
+                password: String,
+                country_id: String,
+            },
+            default: {
+                isHavepathaoUser: false,
+                owner_name: "",
+                owner_number: "",
+                owner_email: "",
+                name: "",
+                merchant_id: 0,
+                password: "",
+                country_id: "",
+            },
         },
     },
     { timestamps: true },
