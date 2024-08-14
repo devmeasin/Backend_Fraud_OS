@@ -197,6 +197,7 @@ export class AuthController {
             delete userWithoutPassword.createdAt;
             delete userWithoutPassword.updatedAt;
             delete userWithoutPassword.__v;
+            delete userWithoutPassword.pathaoMerchantInfo;
         }
         return res.json(userWithoutPassword);
     }

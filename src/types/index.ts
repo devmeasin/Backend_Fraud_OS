@@ -1,4 +1,5 @@
 import { Request } from "express";
+import { IMerchantInfo } from "../models/userModel";
 
 export interface UserData {
     fullName: string;
@@ -20,7 +21,8 @@ export interface UserData_delPassword {
     isPhoneVerified?: false;
     isVerified?: false;
     role?: "customer";
-    isActive?: false;
+    status?: false;
+    pathaoMerchantInfo?: IMerchantInfo;
     createdAt?: Date;
     updatedAt?: Date;
     __v?: number;
