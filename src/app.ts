@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import express, { NextFunction, Request, Response } from "express";
 import { HttpError } from "http-errors";
+import cors from "cors";
 import "reflect-metadata";
 import logger from "./utils/logger";
 import authRouter from "./routes/authRoutes";
@@ -9,6 +10,12 @@ import qcdataRouter from "./routes/QCDataRoutes";
 const app = express();
 
 app.use(express.json());
+app.use(
+    cors({
+        origin: ["http://localhost:5173"],
+        credentials: true,
+    }),
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
