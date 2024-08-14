@@ -18,4 +18,11 @@ export const CourierURI = {
         register_url: "https://merchant.pathao.com/api/v1/register/account",
         fraud_check_url: "https://merchant.pathao.com/api/v1/user/success",
     },
+
+    paperfly_url: {
+        login_url:
+            "https://go-app.paperfly.com.bd/merchant/api/react/authentication/login_using_password.php",
+        fraud_check_url:
+            "https://go-app.paperfly.com.bd/merchant/api/react/smart-check/list.php?",
+    },
 };
