@@ -86,7 +86,17 @@ export const courierDataTransform = (
         : 0;
     const pathaoReturned = pathaoTotal - pathaoDelivered;
 
-    const paperflyTotal = paperfly.records.length;
+    const paperflyTotal =
+        paperfly.records.reduce(
+            (acc: number, record: any) =>
+                acc + parseInt(record.delivered as string),
+            0,
+        ) +
+        paperfly.records.reduce(
+            (acc: number, record: any) =>
+                acc + parseInt(record.returned as string),
+            0,
+        );
     const paperflyDelivered = paperfly.records.reduce(
         (acc: number, record: any) =>
             acc + parseInt(record.delivered as string),

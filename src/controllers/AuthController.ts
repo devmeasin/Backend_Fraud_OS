@@ -191,8 +191,6 @@ export class AuthController {
         }; // Convert Mongoose document to plain object
         if (userWithoutPassword.password) {
             delete userWithoutPassword.isEmailVerified;
-            delete userWithoutPassword.isPhoneVerified;
-            delete userWithoutPassword.isVerified;
             delete userWithoutPassword.password;
             delete userWithoutPassword.createdAt;
             delete userWithoutPassword.updatedAt;

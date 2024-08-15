@@ -57,6 +57,7 @@ export class UserService {
             const updatedUser = await User.findOneAndUpdate(
                 { _id: userId },
                 {
+                    isVerified: true,
                     isPhoneVerified: true,
                     pathaoMerchantInfo: newMerchantInfo,
                 },
