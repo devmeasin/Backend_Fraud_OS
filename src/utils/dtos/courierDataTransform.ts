@@ -131,12 +131,6 @@ export const courierDataTransform = (
             returned: pathaoReturned,
             successRatio: calculateSuccessRatio(pathaoDelivered, pathaoTotal),
         },
-        Redx: {
-            total: redxTotal,
-            delivered: redxDelivered,
-            returned: redxReturned,
-            successRatio: calculateSuccessRatio(redxDelivered, redxTotal),
-        },
         Steadfast: {
             total: steadfastTotal,
             delivered: steadfastDelivered,
@@ -145,6 +139,12 @@ export const courierDataTransform = (
                 steadfastDelivered,
                 steadfastTotal,
             ),
+        },
+        Redx: {
+            total: redxTotal,
+            delivered: redxDelivered,
+            returned: redxReturned,
+            successRatio: calculateSuccessRatio(redxDelivered, redxTotal),
         },
         Paperfly: {
             total: paperflyTotal,

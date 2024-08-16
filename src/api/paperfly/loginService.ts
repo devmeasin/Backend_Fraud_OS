@@ -16,8 +16,8 @@ export const paperflyLogin = async () => {
 
         return data;
     } catch (error) {
-        logger.error("Data fetch network error from Paperfly_Data");
-        throw new Error("Data fetch network error! Paperfly_Data");
+        logger.error("Data fetch network error from Paperfly_Data login area");
+        throw new Error("Data fetch network error! Paperfly_Data login area");
     }
 };
 
