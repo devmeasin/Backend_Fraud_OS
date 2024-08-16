@@ -21,6 +21,7 @@ import {
     resetPasswordSchema,
 } from "../validator/authValidationSchema";
 import { verifyOTPShema } from "../validator/VerifyOTPShema";
+import { genarateOTPShema } from "../validator/genarateOTP";
 
 export class AuthController {
     constructor(
@@ -296,7 +297,6 @@ export class AuthController {
     }
 
     // verify otp
-
     async verifyOTP(req: Request, res: Response, next: NextFunction) {
         await checkSchema(verifyOTPShema).run(req);
         const errors = validationResult(req);
@@ -328,6 +328,44 @@ export class AuthController {
             this.logger.info("OTP verified for password reset", { phone });
 
             res.status(200).json({ message: "OTP verified", userId: user._id });
+        } catch (err) {
+            return next(err);
+        }
+    }
+
+    async genarateOTP(req: Request, res: Response, next: NextFunction) {
+        await checkSchema(genarateOTPShema).run(req);
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { phone }: { phone: string } = req.body;
+
+        try {
+            const user = await this.userService.findByPhone(phone);
+            if (!user) {
+                throw createHttpError(404, "User not found!");
+            }
+
+            if (!user.isPhoneVerified) {
+                const otp = await this.otpService.generateOTP(user);
+                // await this.otpService.sendOTP(phone, otp);
+                await this.otpService.sendOTP(phone, otp);
+                this.logger.info("OTP sent you phone number", { phone });
+                res.status(200).json({
+                    message: "Otp sent to your phone number",
+                    userId: user._id,
+                });
+            }
+
+            this.logger.info("Not generate otp you are verified phone number", {
+                phone,
+            });
+            res.status(200).json({
+                message: "Already verified your phone number",
+                userId: user._id,
+            });
         } catch (err) {
             return next(err);
         }

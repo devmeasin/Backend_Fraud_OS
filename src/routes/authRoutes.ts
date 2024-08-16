@@ -66,14 +66,25 @@ router.post(
         authController.forgotPassword(req as AuthRequest, res, next),
 );
 
-router.post("/verify-otp", (req: Request, res: Response, next: NextFunction) =>
-    authController.verifyOTP(req as AuthRequest, res, next),
+router.post(
+    "/verify-otp",
+    authenticate,
+    (req: Request, res: Response, next: NextFunction) =>
+        authController.verifyOTP(req as AuthRequest, res, next),
 );
 
 router.post(
     "/reset-password",
+    authenticate,
     (req: Request, res: Response, next: NextFunction) =>
-        authController.verifyOTP(req as AuthRequest, res, next),
+        authController.resetPassword(req as AuthRequest, res, next),
+);
+
+router.post(
+    "/generate-otp",
+    authenticate,
+    (req: Request, res: Response, next: NextFunction) =>
+        authController.genarateOTP(req as AuthRequest, res, next),
 );
 
 // router.post(

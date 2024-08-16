@@ -8,6 +8,12 @@ export class OTPService {
     constructor(private logger: Logger) {}
 
     async generateOTP(user: UserDocument): Promise<string> {
+        // beforeGenerateOTP check
+        const prevOTP = await OTP.findOne({ user: user._id });
+        if (prevOTP) {
+            await prevOTP.deleteOne();
+        }
+
         const otp = crypto.randomInt(1000, 9999).toString(); // Generate a 6-digit OTP
 
         // Store the OTP in the database with an expiration time (e.g., 10 minutes)
