@@ -5,14 +5,15 @@ import { JwtPayload } from "jsonwebtoken";
 import { Logger } from "winston";
 
 // import services
-import { UserService } from "../services/userService";
-import { TokenService } from "../services/tokenService";
 import { CredentialService } from "../services/credentialService";
 import { OTPService } from "../services/OTPService";
+import { TokenService } from "../services/TokenService";
+import { UserService } from "../services/userService";
 
 import { processUserRegistration } from "../api/pathao/registerService";
 
 // import types
+import { assignFreeTrialPackage } from "../services/AssignFreeTrialPkService";
 import { AuthRequest, UserData_delPassword } from "../types";
 import {
     forgetPasswordSchema,
@@ -20,9 +21,8 @@ import {
     registerSchema,
     resetPasswordSchema,
 } from "../validator/authValidationSchema";
-import { verifyOTPShema } from "../validator/VerifyOTPShema";
 import { genarateOTPShema } from "../validator/genarateOTP";
-import { assignFreeTrialPackage } from "../services/AssignFreeTrialPkService";
+import { verifyOTPShema } from "../validator/VerifyOTPShema";
 
 export class AuthController {
     constructor(

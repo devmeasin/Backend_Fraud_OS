@@ -1,10 +1,10 @@
 import axios from "axios";
 import { CourierURI } from "../../constants";
-import { loginToPathao } from "./loginService";
-import { pathaoTokenService } from "../../services/pathaoToken";
-import logger from "../../utils/logger";
-import { IPathaoCustomerCheckData, LoginResponse } from "../../types";
 import { IToken } from "../../models/pathaoTokenModel";
+import { pathaoTokenService } from "../../services/PathaoToken";
+import { IPathaoCustomerCheckData, LoginResponse } from "../../types";
+import logger from "../../utils/logger";
+import { loginToPathao } from "./loginService";
 
 const { fraud_check_url } = CourierURI.pathao_url;
 

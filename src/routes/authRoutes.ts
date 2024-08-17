@@ -5,10 +5,10 @@ import logger from "../utils/logger";
 import { AuthController } from "../controllers/authController";
 
 // Service imports
-import { TokenService } from "../services/tokenService";
-import { UserService } from "../services/userService";
 import { CredentialService } from "../services/credentialService";
 import { OTPService } from "../services/OTPService";
+import { TokenService } from "../services/TokenService";
+import { UserService } from "../services/userService";
 
 // Middleware imports
 import authenticate from "../middlewares/authenticate";
