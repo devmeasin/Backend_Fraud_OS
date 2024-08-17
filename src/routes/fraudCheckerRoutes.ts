@@ -9,7 +9,7 @@ import { Paperfly_Data } from "../api/paperfly";
 import { AuthRequest } from "../types";
 import logger from "../utils/logger";
 import { courierDataTransform } from "../utils/dtos/courierDataTransform";
-import checkApiLimit from "../middlewares/checkAPILimit";
+import checkApiLimit from "../middlewares/checkApilimit";
 
 // Define a type that includes the `code` field
 interface ApiResponse {
