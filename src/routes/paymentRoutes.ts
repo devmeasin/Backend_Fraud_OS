@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import Transaction, { ITransaction } from "../models/transaction";
+import Transaction, { ITransaction } from "../models/purchaseHistoryModel";
 import { User, IUser } from "../models/userModel";
 import Package, { IPackage } from "../models/packageModel";
 

@@ -1,11 +1,13 @@
 import mongoose from "mongoose";
 import logger from "../utils/logger";
 import { Config } from ".";
+import { seedPackages } from "../utils/seedPackages";
 
 const connectDB = async () => {
     try {
-        mongoose.connection.on("connected", () => {
+        mongoose.connection.on("connected", async () => {
             logger.info("Connected to database successfully");
+            await seedPackages();
         });
 
         mongoose.connection.on("error", (err) => {

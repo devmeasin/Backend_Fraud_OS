@@ -3,30 +3,32 @@ import { IUser } from "./userModel";
 import { IPackage } from "./packageModel";
 
 export interface IUserPackage extends Document {
-    user: IUser["_id"];
-    package: IPackage["_id"];
+    userId: IUser | mongoose.Types.ObjectId;
+    packageId: IPackage | mongoose.Types.ObjectId;
     usedRequests: number;
     remainingRequests: number;
     purchaseDate: Date;
     expiryDate: Date;
+    isActive: boolean;
 }
 
 const userPackageSchema = new Schema<IUserPackage>(
     {
-        user: {
+        userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
         },
-        package: {
+        packageId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Package",
             required: true,
         },
         usedRequests: { type: Number, default: 0 },
-        remainingRequests: { type: Number, default: 50 },
+        remainingRequests: { type: Number, required: true },
         purchaseDate: { type: Date, default: Date.now },
         expiryDate: { type: Date, required: true },
+        isActive: { type: Boolean, default: true },
     },
     { timestamps: true },
 );

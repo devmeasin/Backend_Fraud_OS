@@ -22,6 +22,7 @@ import {
 } from "../validator/authValidationSchema";
 import { verifyOTPShema } from "../validator/VerifyOTPShema";
 import { genarateOTPShema } from "../validator/genarateOTP";
+import { assignFreeTrialPackage } from "../services/AssignFreeTrialPkService";
 
 export class AuthController {
     constructor(
@@ -323,6 +324,7 @@ export class AuthController {
                     user._id,
                     merchantInfoData,
                 );
+                await assignFreeTrialPackage(user._id);
             }
 
             this.logger.info("OTP verified for password reset", { phone });

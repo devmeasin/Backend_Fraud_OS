@@ -9,6 +9,7 @@ import { Paperfly_Data } from "../api/paperfly";
 import { AuthRequest } from "../types";
 import logger from "../utils/logger";
 import { courierDataTransform } from "../utils/dtos/courierDataTransform";
+import checkApiLimit from "../middlewares/checkAPILimit";
 
 // Define a type that includes the `code` field
 interface ApiResponse {
@@ -69,6 +70,7 @@ const router = Router();
 router.post(
     "/qc-data",
     authenticate,
+    checkApiLimit,
     async (req: Request, res: Response, next: NextFunction) => {
         const authRequest = req as AuthRequest;
 
