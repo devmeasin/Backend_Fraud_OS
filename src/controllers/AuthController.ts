@@ -7,13 +7,13 @@ import { Logger } from "winston";
 // import services
 import { CredentialService } from "../services/credentialService";
 import { OTPService } from "../services/OTPService";
-import { TokenService } from "../services/TokenService";
+import { TokenService } from "../services/tokenService";
 import { UserService } from "../services/userService";
 
 import { processUserRegistration } from "../api/pathao/registerService";
 
 // import types
-import { assignFreeTrialPackage } from "../services/AssignFreeTrialPkService";
+import { assignFreeTrialPackage } from "../services/assignFreeTrialPkService";
 import { AuthRequest, UserData_delPassword } from "../types";
 import {
     forgetPasswordSchema,

@@ -7,7 +7,7 @@ import { AuthController } from "../controllers/authController";
 // Service imports
 import { CredentialService } from "../services/credentialService";
 import { OTPService } from "../services/OTPService";
-import { TokenService } from "../services/TokenService";
+import { TokenService } from "../services/tokenService";
 import { UserService } from "../services/userService";
 
 // Middleware imports

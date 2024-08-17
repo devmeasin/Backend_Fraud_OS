@@ -6,7 +6,7 @@ export interface IPackage extends Document {
     requestLimit: number;
     packegeType: string;
     validityDays: number;
-    apiAccess: boolean;
+    apiAccess?: boolean;
 }
 
 const PackageSchema = new Schema<IPackage>({

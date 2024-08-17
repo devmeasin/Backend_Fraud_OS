@@ -6,6 +6,7 @@ import "reflect-metadata";
 import logger from "./utils/logger";
 import authRouter from "./routes/authRoutes";
 import fraudCheckerRouter from "./routes/fraudCheckerRoutes";
+import paymentRouter from "./routes/paymentRoutes";
 
 const app = express();
 
@@ -29,6 +30,9 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authRouter);
 app.use("/ecom", fraudCheckerRouter);
+
+// for testing
+app.use("/api", paymentRouter);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {

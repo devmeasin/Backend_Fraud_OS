@@ -1,6 +1,6 @@
 import axios from "axios";
 import { CourierURI } from "../../constants";
-import { pathaoTokenService } from "../../services/PathaoToken";
+import { pathaoTokenService } from "../../services/pathaoToken";
 import { UserService } from "../../services/userService";
 import { LoginResponse } from "../../types";
 import logger from "../../utils/logger";
