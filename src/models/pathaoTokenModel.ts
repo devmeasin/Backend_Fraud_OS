@@ -2,6 +2,9 @@ import mongoose, { Document, Schema } from "mongoose";
 
 // Define the interface for the Token document
 export interface IToken extends Document {
+    assertPopulated: string;
+    clearModifiedPaths: string;
+
     token_type: string;
     expires_in: number;
     expires_at: number;

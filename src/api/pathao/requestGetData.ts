@@ -38,37 +38,59 @@ export const pathao_makeRequestWithToken = async (
     userId: string,
     customer_number: string,
 ) => {
+    const cacheKey = `${userId}-${customer_number}`;
     try {
         // Check if the response is already cached
-        const cacheKey = `${userId}-${customer_number}`;
         if (responseCache.has(cacheKey)) {
             return responseCache.get(cacheKey);
         }
 
-        const tokenData = await getTokenFromCache(userId);
-
-        // Check if the token is missing or expired
-        if (!tokenData?.access_token || isTokenExpired(tokenData)) {
-            await fetchAndStoreNewToken(userId);
+        // Try to get a valid token from cache or database
+        let tokenData = await getTokenFromCache(userId);
+        if (!tokenData || isTokenExpired(tokenData)) {
+            // Token not found or expired, so fetch a new one
+            tokenData = (await fetchAndStoreNewToken(userId)) as IToken;
         }
 
-        // Make the API request with the valid token
-        const response = await axios.post(
-            fraud_check_url,
-            { phone: customer_number },
-            {
-                headers: { Authorization: `Bearer ${tokenData?.access_token}` },
-                timeout: 5000, // Set a timeout for the request
-            },
+        // Try making the request with the valid token
+        const response = await makeRequestWithToken(
+            tokenData.access_token,
+            customer_number,
         );
 
         // Cache the response
         responseCache.set(cacheKey, response.data as IPathaoCustomerCheckData);
 
-        // Ensure the response data is returned in the expected format
         return response.data as IPathaoCustomerCheckData;
     } catch (error) {
-        handleError(error);
+        if (isHttpsError(error)) {
+            logger.warn(
+                "HTTPS error occurred, attempting to fetch a new token and retry the request.",
+            );
+
+            // Fetch a new token and retry the request
+            const newTokenData = await fetchAndStoreNewToken(userId);
+
+            try {
+                // Retry the request with the new token
+                const retryResponse = await makeRequestWithToken(
+                    newTokenData.access_token,
+                    customer_number,
+                );
+
+                // Cache the retry response
+                responseCache.set(
+                    cacheKey,
+                    retryResponse.data as IPathaoCustomerCheckData,
+                );
+
+                return retryResponse.data as IPathaoCustomerCheckData;
+            } catch (retryError) {
+                handleError(retryError);
+            }
+        } else {
+            handleError(error);
+        }
     }
 };
 
@@ -90,16 +112,41 @@ const fetchAndStoreNewToken = async (userId: string) => {
         const expiresAt = Date.now() + token.expires_in * 1000; // Convert seconds to milliseconds
 
         // Save the new token with the calculated expiration time
-        await pathaoToken.storePathaoTokenfromDB(userId, {
-            ...token,
-            expires_at: expiresAt,
-        });
+        const newToken = { ...token, expires_at: expiresAt };
+        await pathaoToken.storePathaoTokenfromDB(userId, newToken);
 
-        return { ...token, expires_at: expiresAt };
+        // Update the token cache
+        tokenCache.set(userId, newToken as IToken);
+
+        return newToken;
     } catch (error) {
         logger.error("Failed to obtain new token", error);
         throw new Error("Failed to obtain new token");
     }
+};
+
+// Helper function to check if the error is an HTTPS error
+const isHttpsError = (error: any) => {
+    return (
+        axios.isAxiosError(error) &&
+        error.response &&
+        [401, 403].includes(error.response.status)
+    );
+};
+
+// Helper function to make the request with a given token
+const makeRequestWithToken = async (
+    accessToken: string,
+    customer_number: string,
+) => {
+    return axios.post(
+        fraud_check_url,
+        { phone: customer_number },
+        {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            timeout: 5000, // Set a timeout for the request
+        },
+    );
 };
 
 // Error handling function

@@ -67,17 +67,16 @@ router.post(
 );
 
 router.post(
+    "/reset-password",
+    (req: Request, res: Response, next: NextFunction) =>
+        authController.resetPassword(req as AuthRequest, res, next),
+);
+
+router.post(
     "/verify-otp",
     authenticate,
     (req: Request, res: Response, next: NextFunction) =>
         authController.verifyOTP(req as AuthRequest, res, next),
-);
-
-router.post(
-    "/reset-password",
-    authenticate,
-    (req: Request, res: Response, next: NextFunction) =>
-        authController.resetPassword(req as AuthRequest, res, next),
 );
 
 router.post(
