@@ -9,11 +9,11 @@ import { CredentialService } from "../services/credentialService";
 import { OTPService } from "../services/OTPService";
 import { TokenService } from "../services/tokenService";
 import { UserService } from "../services/userService";
+import { assignFreeTrialPackage } from "../services/assignFreeTrialPkService";
 
 import { processUserRegistration } from "../api/pathao/registerService";
 
 // import types
-import { assignFreeTrialPackage } from "../services/assignFreeTrialPkService";
 import { AuthRequest, UserData_delPassword } from "../types";
 import {
     forgetPasswordSchema,

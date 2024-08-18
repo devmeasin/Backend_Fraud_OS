@@ -1,9 +1,9 @@
 import express from "express";
 import authenticate from "../middlewares/authenticate";
 import { initiateBkashPayment } from "../middlewares/payment_process/bkash/initiateBkashPayment";
+import { confirmBkashPayment } from "../middlewares/payment_process/bkash/confirmBkashPayment";
 
 import { activatePackage } from "../middlewares/payment_process/activatePackage";
-import { confirmBkashPayment } from "../middlewares/payment_process/bkash/confirmBkashPayment";
 
 const router = express.Router();
 
