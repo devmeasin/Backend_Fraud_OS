@@ -1,15 +1,15 @@
 import { NextFunction, Request, Response, Router } from "express";
-import { FraudChekerController } from "../controllers/FraudChekerController";
 import authenticate from "../middlewares/authenticate";
 import checkApiLimit from "../middlewares/checkAPILimit";
+import { FraudCheckerController } from "../controllers/FraudChekerController";
 import { FraudCheckerService } from "../services/FraudCheckerService";
 import logger from "../utils/logger";
 
 // Define a type that includes the `code` field
 const router = Router();
 
-const fraudCheckerService = new FraudCheckerService();
-const fraudCheckerController = new FraudChekerController(
+const fraudCheckerService = new FraudCheckerService(logger);
+const fraudCheckerController = new FraudCheckerController(
     logger,
     fraudCheckerService,
 );
@@ -19,7 +19,7 @@ router.post(
     authenticate,
     checkApiLimit,
     (req: Request, res: Response, next: NextFunction) =>
-        fraudCheckerController.courierReport(req, res, next),
+        fraudCheckerController.customerQcReport(req, res, next),
 );
 
 export default router;

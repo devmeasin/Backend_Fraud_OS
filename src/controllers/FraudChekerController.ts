@@ -5,20 +5,21 @@ import { FraudCheckerService } from "../services/FraudCheckerService";
 import { AuthRequest } from "../types";
 import { courierDataTransform } from "../utils/dtos/courierDataTransform";
 import { BDNumberShema } from "../validator/BDNumberShema";
+import createHttpError from "http-errors";
 
-export class FraudChekerController {
+export class FraudCheckerController {
     constructor(
         private logger: Logger,
         private fraudCheckerService: FraudCheckerService,
     ) {}
 
-    async courierReport(req: Request, res: Response, next: NextFunction) {
+    async customerQcReport(req: Request, res: Response, next: NextFunction) {
         const authRequest = req as AuthRequest;
 
         await checkSchema(BDNumberShema).run(req);
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+            return next(createHttpError(400, "Invalid BD Customer Number"));
         }
 
         try {
@@ -37,13 +38,20 @@ export class FraudChekerController {
                 paperfly,
             });
 
+            // Save data in the database before sending a response
+            await this.fraudCheckerService.customerQcData({
+                customerNumber,
+                userId,
+                transformData,
+            });
+
             res.status(200).json({
+                message: "Courier data saved successfully",
                 ...transformData,
             });
         } catch (error) {
-            this.logger.error("Error fetching data:", error);
-            res.status(500).json({ error: "Failed to fetch data" });
-            next(error);
+            this.logger.error("Error fetching or saving data:", error);
+            next(createHttpError(500, "Failed to fetch or save data"));
         }
     }
 }
