@@ -21,18 +21,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
 
-// Routes
-app.use("/auth", authRouter);
-
 app.get("/", (req, res) => {
     res.send("<h1>Amr Sonar Bangla 🎉</h1>");
 });
 
-app.use("/auth", authRouter);
-app.use("/ecom", fraudCheckerRouter);
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/fraud-checker", fraudCheckerRouter);
 
 // for testing
-app.use("/api", paymentRouter);
+app.use("/api/v1/payment", paymentRouter);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
