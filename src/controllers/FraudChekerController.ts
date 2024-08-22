@@ -46,8 +46,8 @@ export class FraudCheckerController {
             });
 
             res.status(200).json({
-                message: "Courier data saved successfully",
-                ...transformData,
+                message: "Customer QC data fetched successfully",
+                data: transformData,
             });
         } catch (error) {
             this.logger.error("Error fetching or saving data:", error);
