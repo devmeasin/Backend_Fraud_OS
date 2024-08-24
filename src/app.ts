@@ -7,6 +7,8 @@ import logger from "./utils/logger";
 import authRouter from "./routes/authRoutes";
 import fraudCheckerRouter from "./routes/fraudCheckerRoutes";
 import paymentRouter from "./routes/paymentRoutes";
+import packageRouter from "./routes/packageRoutes";
+import billingRouter from "./routes/billingRoutes";
 
 const app = express();
 
@@ -25,11 +27,20 @@ app.get("/", (req, res) => {
     res.send("<h1>Amr Sonar Bangla 🎉</h1>");
 });
 
+// for auth routes
 app.use("/api/v1/auth", authRouter);
+
+// for fraud checker routes
 app.use("/api/v1/fraud-checker", fraudCheckerRouter);
 
-// for testing
+// for payment routes
 app.use("/api/v1/payment", paymentRouter);
+
+// for package routes
+app.use("/api/v1/packages", packageRouter);
+
+// for billing routes
+app.use("/api/v1/billing", billingRouter);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
