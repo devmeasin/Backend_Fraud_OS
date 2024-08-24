@@ -38,8 +38,7 @@ export const initiateBkashPayment = async (
             {
                 mode: "0011",
                 payerReference: `${customerId_packageId}`,
-                callbackURL:
-                    "http://localhost:5001/api/v1/payment/bkash/confirmation",
+                callbackURL: `http://localhost:5001/api/v1/payment/bkash/confirmation?userId=${authRequest.auth.sub}&packageId=${packageId}&amount=${selectedPackage.price}`,
                 amount: selectedPackage.price || 299,
                 currency: "BDT",
                 merchantInvoiceNumber: `invoice-${Date.now()}`,

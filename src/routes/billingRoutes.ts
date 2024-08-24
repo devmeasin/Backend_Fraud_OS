@@ -16,7 +16,9 @@ router.get(
         try {
             const transactions: ITransaction[] = await Transaction.find({
                 userId,
-            }).populate(["userId", "packageId"]);
+            })
+                .populate(["userId", "packageId"])
+                .sort({ createdAt: -1 });
 
             // Transform the transactions
             const transformedTransactions = transactions.map((transaction) => {

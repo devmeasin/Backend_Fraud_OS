@@ -3,10 +3,14 @@ import axios from "axios";
 import { getBkashToken } from "../../../utils/getBkashToken";
 import createHttpError from "http-errors";
 import Transaction from "../../../models/purchaseHistoryModel";
+import logger from "../../../utils/logger";
 
 interface BkashConfirmationQuery {
     paymentID: string;
     status: string;
+    userId: string;
+    packageId: string;
+    amount: string;
 }
 
 // Confirm bKash payment
@@ -17,10 +21,29 @@ export const confirmBkashPayment = async (
 ) => {
     try {
         const token = await getBkashToken(); // Obtain the token
-        const { paymentID, status } =
+        const { paymentID, status, userId, packageId, amount } =
             req.query as unknown as BkashConfirmationQuery;
 
         if (status === "cancel" || status === "failure") {
+            const transaction = new Transaction({
+                userId: userId,
+                packageId: packageId,
+                paymentID: paymentID,
+                amount: amount, // Provide a default value if not available
+                transactionId: "N/A", // Provide a default value if not available
+                paymentStatus: status === "cancel" ? "Cancelled" : "Failed",
+                transactionStatus: "Failed",
+                purchaseDate: new Date(),
+                createdAt: new Date(),
+            });
+
+            try {
+                await transaction.save();
+            } catch (error) {
+                logger.error("Error storing failed transaction:", error);
+                throw createHttpError(500, "Payment Store Failed in DB");
+            }
+
             return res.redirect(
                 `http://localhost:5173/payment/error?message=${status}`,
             );
