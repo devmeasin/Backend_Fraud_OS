@@ -45,10 +45,12 @@ export class FraudCheckerController {
                 transformData,
             });
 
-            res.status(200).json({
-                message: "Customer QC data fetched successfully",
-                data: transformData,
-            });
+            // res.status(200).json({
+            //     message: "Customer QC data fetched successfully",
+            //     data: transformData,
+            // });
+            req.body.transformData = transformData;
+            next();
         } catch (error) {
             this.logger.error("Error fetching or saving data:", error);
             next(createHttpError(500, "Failed to fetch or save data"));

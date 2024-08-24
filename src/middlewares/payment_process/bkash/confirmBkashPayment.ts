@@ -21,7 +21,9 @@ export const confirmBkashPayment = async (
             req.query as unknown as BkashConfirmationQuery;
 
         if (status === "cancel" || status === "failure") {
-            return res.redirect(`http://localhost:5173/test?message=${status}`);
+            return res.redirect(
+                `http://localhost:5173/payment/error?message=${status}`,
+            );
         }
 
         if (status === "success") {

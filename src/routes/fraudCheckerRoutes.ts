@@ -4,6 +4,7 @@ import checkApiLimit from "../middlewares/checkAPILimit";
 import { FraudCheckerController } from "../controllers/FraudChekerController";
 import { FraudCheckerService } from "../services/FraudCheckerService";
 import logger from "../utils/logger";
+import apiLimitDecrease from "../middlewares/apiLimitDecrease";
 
 // Define a type that includes the `code` field
 const router = Router();
@@ -20,6 +21,7 @@ router.post(
     checkApiLimit,
     (req: Request, res: Response, next: NextFunction) =>
         fraudCheckerController.customerQcReport(req, res, next),
+    apiLimitDecrease,
 );
 
 export default router;
