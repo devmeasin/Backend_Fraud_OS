@@ -5,6 +5,7 @@ import { FraudCheckerController } from "../controllers/FraudChekerController";
 import { FraudCheckerService } from "../services/FraudCheckerService";
 import logger from "../utils/logger";
 import apiLimitDecrease from "../middlewares/apiLimitDecrease";
+import validateApiSecret from "../middlewares/validateApiSecret";
 
 // Define a type that includes the `code` field
 const router = Router();
@@ -18,6 +19,15 @@ const fraudCheckerController = new FraudCheckerController(
 router.post(
     "/qc-data",
     authenticate,
+    checkApiLimit,
+    (req: Request, res: Response, next: NextFunction) =>
+        fraudCheckerController.customerQcReport(req, res, next),
+    apiLimitDecrease,
+);
+
+router.post(
+    "/apisecret-qc-data",
+    validateApiSecret,
     checkApiLimit,
     (req: Request, res: Response, next: NextFunction) =>
         fraudCheckerController.customerQcReport(req, res, next),
