@@ -5,6 +5,7 @@ import authenticate from "../middlewares/authenticate";
 import createHttpError from "http-errors";
 import { AuthRequest } from "../types";
 import { packageValidationSchema } from "../validator/packageValidationSchema";
+import { UserPackage } from "../models/userSubscriptionModel";
 
 const router: Router = Router();
 
@@ -72,6 +73,24 @@ router.post(
             res.status(201).json(newPackage);
         } catch (err) {
             next(createHttpError(400, "Package not Created!"));
+        }
+    },
+);
+
+// Check User Current Package
+router.get(
+    "/current",
+    authenticate,
+    async (req: Request, res: Response, next: NextFunction) => {
+        const authReq = req as AuthRequest;
+        try {
+            const userCurrentPackage = await UserPackage.find({
+                userId: authReq.auth.sub,
+                isActive: true,
+            }).sort({ createdAt: -1 });
+            res.json({ userCurrentPackage });
+        } catch (err) {
+            next(createHttpError(400, "User Package not found!"));
         }
     },
 );
