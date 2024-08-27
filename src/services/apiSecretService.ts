@@ -18,8 +18,21 @@ const updateUserApiSecret = async (userId: string) => {
         }
 
         user.apiSecret = apiSecret;
-        user.apiSecretEnabled = true;
+        user.apiSecretStatus = true;
         await user.save(); // Save the user with the new API secret
+    } catch (error) {
+        throw createHttpError(500, "Failed to update API secret");
+    }
+};
+
+const getUserApiSecret = async (userId: string) => {
+    try {
+        const user = await User.findById(userId);
+
+        if (!user) {
+            throw createHttpError(404, "User not found");
+        }
+        return user;
     } catch (error) {
         throw createHttpError(500, "Failed to update API secret");
     }
@@ -34,11 +47,11 @@ const setApiSecretStatus = async (userId: string, apiSecretStatus: boolean) => {
             throw createHttpError(404, "User not found");
         }
 
-        user.apiSecretEnabled = apiSecretStatus;
+        user.apiSecretStatus = apiSecretStatus;
         await user.save(); // Save the user with the updated API secret status
     } catch (error) {
         throw createHttpError(500, "Failed to update API secret status");
     }
 };
 
-export { updateUserApiSecret, setApiSecretStatus };
+export { getUserApiSecret, updateUserApiSecret, setApiSecretStatus };

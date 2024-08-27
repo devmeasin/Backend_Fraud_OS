@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import authenticate from "../middlewares/authenticate";
 import {
+    getUserApiSecret,
     setApiSecretStatus,
     updateUserApiSecret,
 } from "../services/apiSecretService";
@@ -9,6 +10,28 @@ import { AuthRequest } from "../types";
 import validateApiSecret from "../middlewares/validateApiSecret";
 
 const router = express.Router();
+
+// Route to get a API secret
+router.get("/", authenticate, async (req: Request, res: Response) => {
+    const authReq = req as AuthRequest;
+
+    // Check if the user ID is provided
+    if (!authReq.auth.sub) {
+        return res
+            .status(400)
+            .json({ message: "User ID is required Unauthorised" });
+    }
+
+    try {
+        const user = await getUserApiSecret(authReq.auth.sub);
+        res.json({
+            apiSecret: user.apiSecret,
+            apiSecretStatus: user.apiSecretStatus,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating API secret" });
+    }
+});
 
 // Route to generate a new API secret
 router.post("/generate", authenticate, async (req: Request, res: Response) => {

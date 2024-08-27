@@ -33,7 +33,7 @@ const validateApiSecret = async (
     try {
         const user = await User.findOne({
             apiSecret: token,
-            apiSecretEnabled: true,
+            apiSecretStatus: true,
         });
 
         if (user) {

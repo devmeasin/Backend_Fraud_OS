@@ -27,7 +27,7 @@ export interface IUser extends Document {
     currentPackage?: Schema.Types.ObjectId;
     remainingRequests: number;
     apiSecret?: string;
-    apiSecretEnabled?: boolean; // New field to enable/disable API secret
+    apiSecretStatus?: boolean; // New field to enable/disable API secret
 }
 
 const userSchema = new Schema<IUser>(
@@ -73,7 +73,7 @@ const userSchema = new Schema<IUser>(
             },
         },
         apiSecret: { type: String },
-        apiSecretEnabled: { type: Boolean, default: true }, // Default to enabled
+        apiSecretStatus: { type: Boolean, default: true }, // Default to enabled
     },
     { timestamps: true },
 );
