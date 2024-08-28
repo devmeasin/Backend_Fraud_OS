@@ -1,14 +1,14 @@
 import axios from "axios";
 import { CourierURI } from "../../constants";
 import { IToken } from "../../models/pathaoTokenModel";
-import { pathaoTokenService } from "../../services/PathaoToken";
+import { PathaoTokenService } from "../../services/PathaoToken";
 import { IPathaoCustomerCheckData, LoginResponse } from "../../types";
 import logger from "../../utils/logger";
 import { loginToPathao } from "./loginService";
 
 const { fraud_check_url } = CourierURI.pathao_url;
 
-const pathaoToken = new pathaoTokenService();
+const pathaoToken = new PathaoTokenService();
 
 // Caching utility to store and retrieve cached responses
 const responseCache = new Map<string, IPathaoCustomerCheckData>();

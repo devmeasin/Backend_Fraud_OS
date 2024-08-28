@@ -1,9 +1,9 @@
 import axios from "axios";
 import { CourierURI } from "../../constants";
-import { PathaoTokenService } from "../../services/PathaoToken";
 import { UserService } from "../../services/UserService";
 import { LoginResponse } from "../../types";
 import logger from "../../utils/logger";
+import { PathaoTokenService } from "../../services/PathaoToken";
 
 const { login_url } = CourierURI.pathao_url;
 
