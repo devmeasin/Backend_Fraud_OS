@@ -56,15 +56,13 @@ jobs:
         run: |
           # Retrieve the SSH key ID
           SSH_KEY_ID=$(doctl compute ssh-key list --no-header | grep -m 1 "DIGITALOCEAN_SSH_KEY" | awk '{print $1}')
-          
+
           # Create the Droplet
           doctl compute droplet create ecommos-primary \
             --region sgp1 \
-            --size s-2vcpu-2gb \
+            --size s-1vcpu-2gb-amd \
             --image docker-20-04 \
             --ssh-keys $SSH_KEY_ID \
-            --wait \
-            --format ID,PublicIPv4
       
           # Retrieve the Droplet's IP address
           DROPLET_IP=$(doctl compute droplet get ecommos-primary --no-header --format PublicIPv4)
