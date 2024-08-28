@@ -1,21 +1,21 @@
 import axios from "axios";
+import { Config } from "../config";
 
 // Utility to get bKash token
 export const getBkashToken = async () => {
     try {
         const { data } = await axios.post(
-            "https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/token/grant",
+            Config.BKASH_GRANT_TOKEN_URL as string,
             {
-                app_key: "4f6o0cjiki2rfm34kfdadl1eqq",
-                app_secret:
-                    "2is7hdktrekvrbljjh44ll3d9l1dtjo4pasmjvs5vl5qr3fug4b",
+                app_key: Config.BKASH_API_KEY,
+                app_secret: Config.BKASH_SECRET_KEY,
             },
             {
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
-                    username: "sandboxTokenizedUser02",
-                    password: "sandboxTokenizedUser02@12345",
+                    username: Config.BKASH_USERNAME,
+                    password: Config.BKASH_PASSWORD,
                 },
             },
         );

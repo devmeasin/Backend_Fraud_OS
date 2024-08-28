@@ -4,6 +4,7 @@ import { getBkashToken } from "../../../utils/getBkashToken";
 import createHttpError from "http-errors";
 import Transaction from "../../../models/purchaseHistoryModel";
 import logger from "../../../utils/logger";
+import { Config } from "../../../config";
 
 interface BkashConfirmationQuery {
     paymentID: string;
@@ -45,21 +46,21 @@ export const confirmBkashPayment = async (
             }
 
             return res.redirect(
-                `http://localhost:5173/payment/error?message=${status}`,
+                `${Config.FRONTEND_URL}/payment/error?message=${status}`,
             );
         }
 
         if (status === "success") {
             // Confirm payment
             const { data } = await axios.post(
-                "https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/execute",
+                Config.BKASH_EXECUTE_PAYEMNT_URL as string,
                 {
                     paymentID,
                 },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
-                        "X-APP-Key": "4f6o0cjiki2rfm34kfdadl1eqq",
+                        "X-App-Key": Config.BKASH_API_KEY,
                     },
                 },
             );
