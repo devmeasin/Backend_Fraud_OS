@@ -53,21 +53,26 @@ jobs:
 
       - name: Deploy Primary Droplet
         run: |
-          DROPLET_NAME="ecommos-primary"
-          doctl compute droplet create $DROPLET_NAME \
+          # Retrieve the SSH key ID
+          SSH_KEY_ID=$(doctl compute ssh-key list --no-header | grep -m 1 "your-ssh-key-name" | awk '{print $1}')
+      
+          # Create the Droplet
+          doctl compute droplet create ecommos-primary \
             --region sgp1 \
             --size s-2vcpu-2gb \
             --image docker-20-04 \
-            --ssh-keys $(doctl compute ssh-key list --no-header | grep -m 1 "your-ssh-key-name" | awk '{print $1}') \
-
-          DROPLET_IP=$(doctl compute droplet get $DROPLET_NAME --no-header --format PublicIPv4)
-
+            --ssh-keys $SSH_KEY_ID \
+            --wait
+      
+          # Retrieve the Droplet's IP address
+          DROPLET_IP=$(doctl compute droplet get ecommos-primary --no-header --format PublicIPv4)
+      
           # Set up Docker, Nginx, SSL, and jwks.json
           ssh -o StrictHostKeyChecking=no -i ${{ secrets.DIGITALOCEAN_SSH_KEY }} root@$DROPLET_IP << 'EOF'
             apt-get update && apt-get install -y nginx certbot python3-certbot-nginx
             systemctl start nginx
             systemctl enable nginx
-
+      
             # Create jwks.json dynamically
             mkdir -p /etc/nginx/public/.well-known
             echo '{
@@ -80,18 +85,18 @@ jobs:
                     }
                 ]
             }' > /etc/nginx/public/.well-known/jwks.json
-
+      
             docker run -d --name ecommos \
               --restart unless-stopped \
               -p 5001:5001 \
               -e NODE_ENV=production \
               devmeasin/ecommos:v1
-
+      
             # Nginx Configuration
             echo "server {
               listen 80;
               server_name api.ecommos.com;
-
+      
               location / {
                 proxy_pass http://localhost:5001;
                 proxy_set_header Host \$host;
@@ -99,23 +104,21 @@ jobs:
                 proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto \$scheme;
               }
-
+      
               location /.well-known/jwks.json {
                 alias /etc/nginx/public/.well-known/jwks.json;
               }
-
-              ssl_certificate /etc/letsencrypt/live/api.ecommos.com/fullchain.pem;
-              ssl_certificate_key /etc/letsencrypt/live/api.ecommos.com/privkey.pem;
             }" > /etc/nginx/sites-available/default
-
+      
             # SSL Setup
             certbot --nginx -d api.ecommos.com --non-interactive --agree-tos -m your_email@example.com
             nginx -s reload
-
+      
             # Firewall Setup
             ufw allow OpenSSH
             ufw allow 'Nginx Full'
             ufw enable
           EOF
-
-          echo "Droplet $DROPLET_NAME deployed with IP $DROPLET_IP"
+      
+          echo "Droplet ecommos-primary deployed with IP $DROPLET_IP"
+      
