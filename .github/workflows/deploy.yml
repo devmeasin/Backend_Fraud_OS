@@ -59,7 +59,6 @@ jobs:
             --size s-2vcpu-2gb \
             --image docker-20-04 \
             --ssh-keys $(doctl compute ssh-key list --no-header | grep -m 1 "your-ssh-key-name" | awk '{print $1}') \
-            --enable-backups \
             --wait \
             --format ID,PublicIPv4
 
