@@ -62,7 +62,6 @@ jobs:
             --size s-2vcpu-2gb \
             --image docker-20-04 \
             --ssh-keys $SSH_KEY_ID \
-            --wait
       
           # Retrieve the Droplet's IP address
           DROPLET_IP=$(doctl compute droplet get ecommos-primary --no-header --format PublicIPv4)
