@@ -1,9 +1,9 @@
 import createHttpError from "http-errors";
-import PathaoToken from "../models/pathaoTokenModel";
+import PathaoTokenModel from "../models/pathaoTokenModel";
 import { LoginResponse } from "../types";
 
 export class PathaoTokenService {
-    constructor(private pathaoToken = PathaoToken) {}
+    constructor(private pathaoToken = PathaoTokenModel) {}
 
     async getPathaoTokenfromDB(userId: string) {
         try {

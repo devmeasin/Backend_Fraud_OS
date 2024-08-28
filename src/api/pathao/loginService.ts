@@ -1,8 +1,8 @@
 import axios from "axios";
-import { CourierURI } from "../../constants";
-import { UserService } from "../../services/UserService";
 import { LoginResponse } from "../../types";
 import logger from "../../utils/logger";
+import { CourierURI } from "../../constants";
+import { UserService } from "../../services/UserService";
 import { PathaoTokenService } from "../../services/PathaoToken";
 
 const { login_url } = CourierURI.pathao_url;
