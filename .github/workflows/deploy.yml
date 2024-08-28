@@ -51,6 +51,12 @@ jobs:
       - name: Authenticate DigitalOcean CLI
         run: doctl auth init --access-token ${{ secrets.DIGITALOCEAN_API_TOKEN }}
 
+      - name: Set up SSH Key
+        run: |
+          echo "${{ secrets.DIGITALOCEAN_SSH_KEY }}" | base64 --decode > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $DROPLET_IP >> ~/.ssh/known_hosts
+
       - name: Deploy Primary Droplet
         id: deploy
         run: |
