@@ -20,8 +20,11 @@ jobs:
           node-version: 21.7.1
 
       - name: Install dependencies
-        run: npm i
-
+        run: npm install
+      
+      - name: Clear npm cache
+        run: npm cache clean --force
+      
       - name: Build the application
         run: npm run build
 

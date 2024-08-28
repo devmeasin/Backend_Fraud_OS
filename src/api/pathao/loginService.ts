@@ -1,9 +1,9 @@
 import axios from "axios";
-import { LoginResponse } from "../../types";
-import logger from "../../utils/logger";
 import { CourierURI } from "../../constants";
 import { UserService } from "../../services/UserService";
-import { PathaoTokenService } from "../../services/PathaoToken";
+import { PathaoTokenService } from "../../services/pathaoToken";
+import { LoginResponse } from "../../types";
+import logger from "../../utils/logger";
 
 const { login_url } = CourierURI.pathao_url;
 
@@ -13,7 +13,7 @@ const { login_url } = CourierURI.pathao_url;
 // };
 
 const userSertvice = new UserService();
-const pathaoTokenData = new PathaoTokenService();
+const pathaoToken = new PathaoTokenService();
 
 export async function loginToPathao(userId: string) {
     const user = await userSertvice.findById(userId);
@@ -28,7 +28,7 @@ export async function loginToPathao(userId: string) {
         const response = await axios.post(login_url, PATHAO_CREDENTIALS);
 
         // Store new token in the database
-        await pathaoTokenData.storePathaoTokenfromDB(
+        await pathaoToken.storePathaoTokenfromDB(
             user._id,
             response.data as LoginResponse,
         );
