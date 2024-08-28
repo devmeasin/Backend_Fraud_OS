@@ -27,9 +27,11 @@ jobs:
       
       - name: Build the application
         run: npm run build
-
+      
+        
       - name: Log in to Docker Hub
-        run: echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+        run: echo "<DOCKER_HUB_PASSWORD>" | docker login -u "<DOCKER_HUB_USERNAME>" --password-stdin
+              && echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin docker.io
 
       - name: Build Docker image
         run: docker build -f docker/prod/Dockerfile -t devmeasin/ecommos:v1 .
