@@ -5,11 +5,11 @@ import { JwtPayload } from "jsonwebtoken";
 import { Logger } from "winston";
 
 // import services
-import { CredentialService } from "../services/credentialService";
+import { CredentialService } from "../services/CredentialService";
 import { OTPService } from "../services/OTPService";
-import { TokenService } from "../services/tokenService";
-import { UserService } from "../services/userService";
-import { assignFreeTrialPackage } from "../services/assignFreeTrialPkService";
+import { TokenService } from "../services/TokenService";
+import { UserService } from "../services/UserService";
+import { assignFreeTrialPackage } from "../services/AssignFreeTrialPkService";
 
 import { processUserRegistration } from "../api/pathao/registerService";
 
