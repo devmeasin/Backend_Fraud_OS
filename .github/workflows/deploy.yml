@@ -55,16 +55,28 @@ jobs:
         run: |
           # Retrieve the SSH key ID
           SSH_KEY_ID=$(doctl compute ssh-key list --no-header | grep -m 1 "your-ssh-key-name" | awk '{print $1}')
+          
+          # Ensure SSH_KEY_ID is not empty
+          if [ -z "$SSH_KEY_ID" ]; then
+            echo "Error: SSH Key ID not found."
+            exit 1
+          fi
       
           # Create the Droplet
           doctl compute droplet create ecommos-primary \
             --region sgp1 \
             --size s-2vcpu-2gb \
             --image docker-20-04 \
-            --ssh-keys $SSH_KEY_ID \
+            --ssh-keys $SSH_KEY_ID
       
           # Retrieve the Droplet's IP address
           DROPLET_IP=$(doctl compute droplet get ecommos-primary --no-header --format PublicIPv4)
+      
+          # Check if DROPLET_IP is empty
+          if [ -z "$DROPLET_IP" ]; then
+            echo "Error: Failed to retrieve Droplet IP address."
+            exit 1
+          fi
       
           # Set up Docker, Nginx, SSL, and jwks.json
           ssh -o StrictHostKeyChecking=no -i ${{ secrets.DIGITALOCEAN_SSH_KEY }} root@$DROPLET_IP << 'EOF'
@@ -120,4 +132,3 @@ jobs:
           EOF
       
           echo "Droplet ecommos-primary deployed with IP $DROPLET_IP"
-      
