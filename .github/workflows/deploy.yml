@@ -54,7 +54,7 @@ jobs:
       - name: Deploy Primary Droplet
         run: |
           # Retrieve the SSH key ID
-          SSH_KEY_ID=$(doctl compute ssh-key list --no-header | grep -m 1 "your-ssh-key-name" | awk '{print $1}')
+          SSH_KEY_ID=$(doctl compute ssh-key list --no-header | grep -m 1 "DIGITALOCEAN_SSH_KEY" | awk '{print $1}')
           
           # Ensure SSH_KEY_ID is not empty
           if [ -z "$SSH_KEY_ID" ]; then
