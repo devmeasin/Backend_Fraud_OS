@@ -52,35 +52,33 @@ jobs:
         run: doctl auth init --access-token ${{ secrets.DIGITALOCEAN_API_TOKEN }}
 
       - name: Deploy Primary Droplet
+        id: deploy
         run: |
           # Retrieve the SSH key ID
           SSH_KEY_ID=$(doctl compute ssh-key list --no-header | grep -m 1 "DIGITALOCEAN_SSH_KEY" | awk '{print $1}')
           
-          # Ensure SSH_KEY_ID is not empty
-          if [ -z "$SSH_KEY_ID" ]; then
-            echo "Error: SSH Key ID not found."
-            exit 1
-          fi
-      
           # Create the Droplet
           doctl compute droplet create ecommos-primary \
             --region sgp1 \
             --size s-2vcpu-2gb \
             --image docker-20-04 \
-            --ssh-keys $SSH_KEY_ID
+            --ssh-keys $SSH_KEY_ID \
+            --wait \
+            --format ID,PublicIPv4
       
           # Retrieve the Droplet's IP address
           DROPLET_IP=$(doctl compute droplet get ecommos-primary --no-header --format PublicIPv4)
-      
-          # Check if DROPLET_IP is empty
-          if [ -z "$DROPLET_IP" ]; then
-            echo "Error: Failed to retrieve Droplet IP address."
-            exit 1
-          fi
-      
-          # Set up Docker, Nginx, SSL, and jwks.json
+          echo "Droplet IP: $DROPLET_IP"
+          echo "DROPLET_IP=$DROPLET_IP" >> $GITHUB_ENV
+
+      - name: Set up Docker, Nginx, SSL, and jwks.json
+        run: |
+          # Wait for droplet to be ready
+          sleep 60
+
+          # Run setup script on the Droplet
           ssh -o StrictHostKeyChecking=no -i ${{ secrets.DIGITALOCEAN_SSH_KEY }} root@$DROPLET_IP << 'EOF'
-            apt-get update && apt-get install -y nginx certbot python3-certbot-nginx
+            apt-get update && apt-get install -y nginx certbot python3-certbot-nginx docker.io
             systemctl start nginx
             systemctl enable nginx
       
@@ -97,6 +95,8 @@ jobs:
                 ]
             }' > /etc/nginx/public/.well-known/jwks.json
       
+            # Pull Docker image and run it
+            docker pull devmeasin/ecommos:v1
             docker run -d --name ecommos \
               --restart unless-stopped \
               -p 5001:5001 \
@@ -130,5 +130,5 @@ jobs:
             ufw allow 'Nginx Full'
             ufw enable
           EOF
-      
+          
           echo "Droplet ecommos-primary deployed with IP $DROPLET_IP"
