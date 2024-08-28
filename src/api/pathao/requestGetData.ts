@@ -8,7 +8,7 @@ import { loginToPathao } from "./loginService";
 
 const { fraud_check_url } = CourierURI.pathao_url;
 
-const pathaoToken = new PathaoTokenService();
+const pathaoTokenData = new PathaoTokenService();
 
 // Caching utility to store and retrieve cached responses
 const responseCache = new Map<string, IPathaoCustomerCheckData>();
@@ -24,7 +24,7 @@ const getTokenFromCache = async (userId: string): Promise<IToken | null> => {
     }
 
     // Fetch from database if not cached or expired
-    const tokenData = await pathaoToken.getPathaoTokenfromDB(userId);
+    const tokenData = await pathaoTokenData.getPathaoTokenfromDB(userId);
     if (tokenData && !isTokenExpired(tokenData)) {
         tokenCache.set(userId, tokenData);
         return tokenData;
@@ -113,7 +113,7 @@ const fetchAndStoreNewToken = async (userId: string) => {
 
         // Save the new token with the calculated expiration time
         const newToken = { ...token, expires_at: expiresAt };
-        await pathaoToken.storePathaoTokenfromDB(userId, newToken);
+        await pathaoTokenData.storePathaoTokenfromDB(userId, newToken);
 
         // Update the token cache
         tokenCache.set(userId, newToken as IToken);

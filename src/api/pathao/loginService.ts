@@ -13,7 +13,7 @@ const { login_url } = CourierURI.pathao_url;
 // };
 
 const userSertvice = new UserService();
-const pathaoToken = new PathaoTokenService();
+const pathaoTokenData = new PathaoTokenService();
 
 export async function loginToPathao(userId: string) {
     const user = await userSertvice.findById(userId);
@@ -28,7 +28,7 @@ export async function loginToPathao(userId: string) {
         const response = await axios.post(login_url, PATHAO_CREDENTIALS);
 
         // Store new token in the database
-        await pathaoToken.storePathaoTokenfromDB(
+        await pathaoTokenData.storePathaoTokenfromDB(
             user._id,
             response.data as LoginResponse,
         );
