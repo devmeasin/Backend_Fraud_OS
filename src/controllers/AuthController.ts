@@ -5,15 +5,15 @@ import { JwtPayload } from "jsonwebtoken";
 import { Logger } from "winston";
 
 // import services
-import { CredentialService } from "../services/credentialService";
+import { CredentialService } from "../services/CredentialService";
 import { OTPService } from "../services/OTPService";
-import { TokenService } from "../services/tokenService";
-import { UserService } from "../services/userService";
+import { TokenService } from "../services/TokenService";
+import { UserService } from "../services/UserService";
+import { assignFreeTrialPackage } from "../services/AssignFreeTrialPkService";
 
 import { processUserRegistration } from "../api/pathao/registerService";
 
 // import types
-import { assignFreeTrialPackage } from "../services/assignFreeTrialPkService";
 import { AuthRequest, UserData_delPassword } from "../types";
 import {
     forgetPasswordSchema,
@@ -23,6 +23,7 @@ import {
 } from "../validator/authValidationSchema";
 import { genarateOTPShema } from "../validator/genarateOTP";
 import { verifyOTPShema } from "../validator/VerifyOTPShema";
+import { Config } from "../config";
 
 export class AuthController {
     constructor(
@@ -93,7 +94,7 @@ export class AuthController {
             });
 
             res.cookie("accessToken", accessToken, {
-                domain: "localhost",
+                domain: Config.MAIN_DOMAIN,
                 sameSite: "strict",
                 maxAge: 1000 * 60 * 60, // 1h
                 httpOnly: true,
@@ -101,7 +102,7 @@ export class AuthController {
             });
 
             res.cookie("refreshToken", refreshToken, {
-                domain: "localhost",
+                domain: Config.MAIN_DOMAIN,
                 sameSite: "strict",
                 maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
                 httpOnly: true,
@@ -163,7 +164,7 @@ export class AuthController {
             });
 
             res.cookie("accessToken", accessToken, {
-                domain: "localhost",
+                domain: Config.MAIN_DOMAIN,
                 sameSite: "strict",
                 maxAge: 1000 * 60 * 60, // 1h
                 httpOnly: true,
@@ -171,7 +172,7 @@ export class AuthController {
             });
 
             res.cookie("refreshToken", refreshToken, {
-                domain: "localhost",
+                domain: Config.MAIN_DOMAIN,
                 sameSite: "strict",
                 maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
                 httpOnly: true,
@@ -232,7 +233,7 @@ export class AuthController {
             });
 
             res.cookie("accessToken", accessToken, {
-                domain: "localhost",
+                domain: Config.MAIN_DOMAIN,
                 sameSite: "strict",
                 maxAge: 1000 * 60 * 60, // 1h
                 httpOnly: true,
@@ -240,7 +241,7 @@ export class AuthController {
             });
 
             res.cookie("refreshToken", refreshToken, {
-                domain: "localhost",
+                domain: Config.MAIN_DOMAIN,
                 sameSite: "strict",
                 maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
                 httpOnly: true,

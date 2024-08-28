@@ -4,14 +4,14 @@ import logger from "./logger";
 // Seeding function
 export const seedPackages = async () => {
     try {
-        const existingPackage = await Package.findOne({ name: "Free Trial" });
+        const existingPackage = await Package.findOne({ name: "FREE TRIAL" });
         if (existingPackage) {
             logger.info("Free Trial package already exists.");
             return;
         }
 
         const freeTrialPackage = new Package({
-            name: "Free Trial",
+            name: "FREE TRIAL",
             price: 0,
             requestLimit: 50,
             validityDays: 5,

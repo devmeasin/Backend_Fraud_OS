@@ -6,6 +6,7 @@ import { getBkashToken } from "../../../utils/getBkashToken";
 import { AuthRequest } from "../../../types";
 import mongoose from "mongoose";
 import logger from "../../../utils/logger";
+import { Config } from "../../../config";
 
 // Initiate bKash payment
 export const initiateBkashPayment = async (
@@ -34,21 +35,21 @@ export const initiateBkashPayment = async (
 
         // bKash API call to initiate payment
         const response = await axios.post(
-            "https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/create",
+            Config.BKASH_CREATE_PAYMENT_URL as string,
             {
                 mode: "0011",
                 payerReference: `${customerId_packageId}`,
-                callbackURL:
-                    "http://localhost:5001/api/payment/bkash/confirmation",
-                amount: selectedPackage.price || 299,
+                callbackURL: `${Config.API_GATEWAY}/api/v1/payment/bkash/confirmation?userId=${authRequest.auth.sub}&packageId=${packageId}&amount=${selectedPackage.price}`,
+                amount: selectedPackage.price,
                 currency: "BDT",
                 merchantInvoiceNumber: `invoice-${Date.now()}`,
                 intent: "sale",
             },
             {
                 headers: {
+                    Accept: "application/json",
                     Authorization: `Bearer ${token}`,
-                    "X-APP-Key": "4f6o0cjiki2rfm34kfdadl1eqq",
+                    "x-app-key": Config.BKASH_API_KEY,
                 },
             },
         );

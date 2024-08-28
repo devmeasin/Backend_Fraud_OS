@@ -2,13 +2,13 @@ import express, { NextFunction, Request, Response } from "express";
 import logger from "../utils/logger";
 
 // Controller imports
-import { AuthController } from "../controllers/authController";
+import { AuthController } from "../controllers/AuthController";
 
 // Service imports
-import { CredentialService } from "../services/credentialService";
+import { CredentialService } from "../services/CredentialService";
 import { OTPService } from "../services/OTPService";
-import { TokenService } from "../services/tokenService";
-import { UserService } from "../services/userService";
+import { TokenService } from "../services/TokenService";
+import { UserService } from "../services/UserService";
 
 // Middleware imports
 import authenticate from "../middlewares/authenticate";

@@ -100,8 +100,15 @@ async function login(): Promise<SessionData> {
         remember_web_cookie: rememberWebCookie,
         expires: setCookieExpiration(newCookies),
     };
+    if (sessionData.remember_web_cookie) {
+        logger.info(
+            "Session successfully created. Remember web cookie:🍪",
+            sessionData.remember_web_cookie,
+        );
+    } else {
+        logger.error("Session creation failed.");
+    }
 
-    logger.info("Session successfully created.", sessionData);
     return sessionData;
 }
 

@@ -1,0 +1,118 @@
+name: Deploy eCommOS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 21.7.1
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the application
+        run: npm run build
+
+      - name: Log in to Docker Hub
+        run: echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+
+      - name: Build Docker image
+        run: docker build -f docker/prod/Dockerfile -t devmeasin/ecommos:v1 .
+
+      - name: Push Docker image to Docker Hub
+        run: docker push devmeasin/ecommos:v1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install DigitalOcean CLI
+        run: sudo snap install doctl
+
+      - name: Authenticate DigitalOcean CLI
+        run: doctl auth init --access-token ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+
+      - name: Deploy Primary Droplet
+        run: |
+          DROPLET_NAME="ecommos-primary"
+          doctl compute droplet create $DROPLET_NAME \
+            --region sgp1 \
+            --size s-2vcpu-2gb \
+            --image docker-20-04 \
+            --ssh-keys $(doctl compute ssh-key list --no-header | grep -m 1 "your-ssh-key-name" | awk '{print $1}') \
+            --enable-backups \
+            --wait \
+            --format ID,PublicIPv4
+
+          DROPLET_IP=$(doctl compute droplet get $DROPLET_NAME --no-header --format PublicIPv4)
+
+          # Set up Docker, Nginx, SSL, and jwks.json
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.DIGITALOCEAN_SSH_KEY }} root@$DROPLET_IP << 'EOF'
+            apt-get update && apt-get install -y nginx certbot python3-certbot-nginx
+            systemctl start nginx
+            systemctl enable nginx
+
+            # Create jwks.json dynamically
+            mkdir -p /etc/nginx/public/.well-known
+            echo '{
+                "keys": [
+                    {
+                    "kty": "RSA",
+                    "use": "sig",
+                    "n": "AKFqnErO8sLtwBcF_dDKLhKgUcREdAgvP6tpohAuMuhqNMQ3ZFL1oraO0R4xRGwmDY4WrPjAplb-VgsOXvD85nG2ALX-W4O3ZSgl18JtLAIr0mIhDSYIpBvE7V8LC7YBlO2yJYeG1Hd1oPKGZh_7UysXGLQk3tnzc1uAtpTu24OWWRCoWIIgGIm-FJQ6jFmbf3Rs-VePN-WHu8_gP-7MirbaGM6h-AOfU0hOl8Us-8bYz637EJezyO9xaZDRkHaB4_4hePasX8bCRedZa-UlbYeXD3LheUFiiqgQmZR9FA3B1kr1uqOWFBhxyabJ7SkKIQBlVptIz-V4D9ilJAWGzNM",
+                    "e": "AQAB"
+                    }
+                ]
+            }' > /etc/nginx/public/.well-known/jwks.json
+
+            docker run -d --name ecommos \
+              --restart unless-stopped \
+              -p 5001:5001 \
+              -e NODE_ENV=production \
+              devmeasin/ecommos:v1
+
+            # Nginx Configuration
+            echo "server {
+              listen 80;
+              server_name api.ecommos.com;
+
+              location / {
+                proxy_pass http://localhost:5001;
+                proxy_set_header Host \$host;
+                proxy_set_header X-Real-IP \$remote_addr;
+                proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto \$scheme;
+              }
+
+              location /.well-known/jwks.json {
+                alias /etc/nginx/public/.well-known/jwks.json;
+              }
+
+              ssl_certificate /etc/letsencrypt/live/api.ecommos.com/fullchain.pem;
+              ssl_certificate_key /etc/letsencrypt/live/api.ecommos.com/privkey.pem;
+            }" > /etc/nginx/sites-available/default
+
+            # SSL Setup
+            certbot --nginx -d api.ecommos.com --non-interactive --agree-tos -m your_email@example.com
+            nginx -s reload
+
+            # Firewall Setup
+            ufw allow OpenSSH
+            ufw allow 'Nginx Full'
+            ufw enable
+          EOF
+
+          echo "Droplet $DROPLET_NAME deployed with IP $DROPLET_IP"

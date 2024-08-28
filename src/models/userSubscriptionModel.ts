@@ -10,6 +10,7 @@ export interface IUserPackage extends Document {
     purchaseDate: Date;
     expiryDate: Date;
     isActive: boolean;
+    isUnlimited: boolean; // New field for unlimited requests
 }
 
 const userPackageSchema = new Schema<IUserPackage>(
@@ -29,6 +30,7 @@ const userPackageSchema = new Schema<IUserPackage>(
         purchaseDate: { type: Date, default: Date.now },
         expiryDate: { type: Date, required: true },
         isActive: { type: Boolean, default: true },
+        isUnlimited: { type: Boolean, default: false }, // New field for unlimited requests
     },
     { timestamps: true },
 );

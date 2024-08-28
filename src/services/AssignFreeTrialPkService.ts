@@ -6,7 +6,7 @@ import logger from "../utils/logger";
 export const assignFreeTrialPackage = async (userId: string) => {
     try {
         // Find the Free Trial package
-        const freeTrialPackage = await Package.findOne({ name: "Free Trial" });
+        const freeTrialPackage = await Package.findOne({ name: "FREE TRIAL" });
 
         if (!freeTrialPackage) {
             throw new Error("Free Trial package not found");

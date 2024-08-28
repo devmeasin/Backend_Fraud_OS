@@ -3,10 +3,15 @@ import axios from "axios";
 import { getBkashToken } from "../../../utils/getBkashToken";
 import createHttpError from "http-errors";
 import Transaction from "../../../models/purchaseHistoryModel";
+import logger from "../../../utils/logger";
+import { Config } from "../../../config";
 
 interface BkashConfirmationQuery {
     paymentID: string;
     status: string;
+    userId: string;
+    packageId: string;
+    amount: string;
 }
 
 // Confirm bKash payment
@@ -17,24 +22,45 @@ export const confirmBkashPayment = async (
 ) => {
     try {
         const token = await getBkashToken(); // Obtain the token
-        const { paymentID, status } =
+        const { paymentID, status, userId, packageId, amount } =
             req.query as unknown as BkashConfirmationQuery;
 
         if (status === "cancel" || status === "failure") {
-            return res.redirect(`http://localhost:5173/test?message=${status}`);
+            const transaction = new Transaction({
+                userId: userId,
+                packageId: packageId,
+                paymentID: paymentID,
+                amount: amount, // Provide a default value if not available
+                transactionId: "N/A", // Provide a default value if not available
+                paymentStatus: status === "cancel" ? "Cancelled" : "Failed",
+                transactionStatus: "Failed",
+                purchaseDate: new Date(),
+                createdAt: new Date(),
+            });
+
+            try {
+                await transaction.save();
+            } catch (error) {
+                logger.error("Error storing failed transaction:", error);
+                throw createHttpError(500, "Payment Store Failed in DB");
+            }
+
+            return res.redirect(
+                `${Config.FRONTEND_URL}/payment/error?message=${status}`,
+            );
         }
 
         if (status === "success") {
             // Confirm payment
             const { data } = await axios.post(
-                "https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout/execute",
+                Config.BKASH_EXECUTE_PAYEMNT_URL as string,
                 {
                     paymentID,
                 },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
-                        "X-APP-Key": "4f6o0cjiki2rfm34kfdadl1eqq",
+                        "X-App-Key": Config.BKASH_API_KEY,
                     },
                 },
             );

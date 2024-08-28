@@ -26,6 +26,8 @@ export interface IUser extends Document {
     pathaoMerchantInfo?: IMerchantInfo;
     currentPackage?: Schema.Types.ObjectId;
     remainingRequests: number;
+    apiSecret?: string;
+    apiSecretStatus?: boolean; // New field to enable/disable API secret
 }
 
 const userSchema = new Schema<IUser>(
@@ -43,7 +45,7 @@ const userSchema = new Schema<IUser>(
         },
         isEmailVerified: { type: Boolean, default: false },
         isPhoneVerified: { type: Boolean, default: false },
-        isVerified: { type: Boolean, default: false }, // Flag for OTP verification
+        isVerified: { type: Boolean, default: false },
         role: {
             type: String,
             enum: ["customer", "admin", "manager"],
@@ -70,6 +72,8 @@ const userSchema = new Schema<IUser>(
                 country_id: "",
             },
         },
+        apiSecret: { type: String },
+        apiSecretStatus: { type: Boolean, default: true }, // Default to enabled
     },
     { timestamps: true },
 );
