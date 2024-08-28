@@ -2,7 +2,7 @@ import createHttpError from "http-errors";
 import PathaoToken from "../models/pathaoTokenModel";
 import { LoginResponse } from "../types";
 
-export class pathaoTokenService {
+export class PathaoTokenService {
     constructor(private pathaoToken = PathaoToken) {}
 
     async getPathaoTokenfromDB(userId: string) {

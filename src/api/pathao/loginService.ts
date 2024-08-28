@@ -1,6 +1,6 @@
 import axios from "axios";
 import { CourierURI } from "../../constants";
-import { pathaoTokenService } from "../../services/PathaoToken";
+import { PathaoTokenService } from "../../services/PathaoToken";
 import { UserService } from "../../services/UserService";
 import { LoginResponse } from "../../types";
 import logger from "../../utils/logger";
@@ -13,7 +13,7 @@ const { login_url } = CourierURI.pathao_url;
 // };
 
 const userSertvice = new UserService();
-const pathaoToken = new pathaoTokenService();
+const pathaoToken = new PathaoTokenService();
 
 export async function loginToPathao(userId: string) {
     const user = await userSertvice.findById(userId);
