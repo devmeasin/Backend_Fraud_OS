@@ -1,0 +1,68 @@
+name: Scale eCommOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      region:
+        description: 'DigitalOcean Region (e.g., sgp1, nyc3)'
+        required: true
+      droplet_name:
+        description: 'Droplet Name'
+        required: true
+
+jobs:
+  scale:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install DigitalOcean CLI
+        run: sudo snap install doctl
+
+      - name: Authenticate DigitalOcean CLI
+        run: doctl auth init --access-token ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+
+      - name: Create New Droplet
+        run: |
+          DROPLET_NAME="${{ github.event.inputs.droplet_name }}"
+          doctl compute droplet create $DROPLET_NAME \
+            --region sgp1 \
+            --size s-1vcpu-1gb \
+            --image docker-20-04 \
+            --ssh-keys $(doctl compute ssh-key list --no-header | grep -m 1 "your-ssh-key-name" | awk '{print $1}') \
+            --enable-backups \
+            --wait \
+            --format ID,PublicIPv4
+
+          DROPLET_IP=$(doctl compute droplet get $DROPLET_NAME --no-header --format PublicIPv4)
+
+          # Add to Nginx Configuration on Primary Droplet
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.DIGITALOCEAN_SSH_KEY }} root@$PRIMARY_DROPLET_IP << 'EOF'
+            echo "upstream ecommos_backend {
+              server $PRIMARY_DROPLET_IP:5001;
+              server $DROPLET_IP:5001;
+            }
+
+            server {
+              listen 80;
+              server_name api.ecommos.com;
+
+              location / {
+                proxy_pass http://ecommos_backend;
+                proxy_set_header Host \$host;
+                proxy_set_header X-Real-IP \$remote_addr;
+                proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto \$scheme;
+              }
+
+              location /jwks.json {
+                alias /etc/nginx/public/jwks.json;
+              }
+
+              ssl_certificate /etc/letsencrypt/live/api.ecommos.com/fullchain.pem;
+              ssl_certificate_key /etc/letsencrypt/live/api.ecommos.com/privkey.pem;
+            }" > /etc/nginx/sites-available/default
+
+            nginx -s reload
+          EOF
+          
+          echo "New droplet $DROPLET_NAME added with IP $DROPLET_IP"

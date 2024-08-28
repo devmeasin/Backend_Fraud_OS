@@ -4,12 +4,13 @@
    "description": "",
    "main": "index.js",
    "scripts": {
-      "dev": "cross-env NODE_ENV=dev nodemon -L src/server.ts",
+      "dev": "cross-env NODE_ENV=dev nodemon src/server.ts",
+      "build": "tsc",
       "format:check": "prettier . --check",
       "format:fix": "prettier --write 'src/**/*.{js,ts}'",
       "lint": "eslint 'src/**/*.{js,ts}'",
       "code:fix": "eslint --max-warnings=0 --ext .js,.ts, . --fix",
-      "prepare": "husky install",
+      "prepare": "if [ \"$NODE_ENV\" = \"dev\" ]; then husky install; fi",
       "test": "jest --watch --runInBand",
       "start": "ts-node src/index.ts",
       "typeorm": "typeorm-ts-node-commonjs"
@@ -71,7 +72,6 @@
    },
    "lint-staged": {
       "*.{js,ts}": [
-         "npm run code:fix",
          "npm run format:fix"
       ]
    }
