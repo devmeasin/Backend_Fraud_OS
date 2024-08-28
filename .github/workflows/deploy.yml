@@ -57,29 +57,70 @@ jobs:
           # Retrieve the SSH key ID
           SSH_KEY_ID=$(doctl compute ssh-key list --no-header | grep -m 1 "DIGITALOCEAN_SSH_KEY" | awk '{print $1}')
 
-          # Create the Droplet
+          # Create the Droplet with Ubuntu
           doctl compute droplet create ecommos-primary \
             --region sgp1 \
             --size s-1vcpu-2gb-amd \
-            --image docker-20-04 \
+            --image ubuntu-22-04-x64 \
             --ssh-keys $SSH_KEY_ID \
-      
+
           # Retrieve the Droplet's IP address
           DROPLET_IP=$(doctl compute droplet get ecommos-primary --no-header --format PublicIPv4)
           echo "Droplet IP: $DROPLET_IP"
           echo "DROPLET_IP=$DROPLET_IP" >> $GITHUB_ENV
 
-      - name: Set up Docker, Nginx, SSL, and jwks.json
+      - name: Set up Nginx, SSL, and Docker
         run: |
           # Wait for droplet to be ready
           sleep 60
 
           # Run setup script on the Droplet
           ssh -o StrictHostKeyChecking=no -i ${{ secrets.DIGITALOCEAN_SSH_KEY }} root@$DROPLET_IP << 'EOF'
-            apt-get update && apt-get install -y nginx certbot python3-certbot-nginx docker.io
+            # Update and install Nginx, Certbot, and firewall
+            apt-get update && apt-get install -y nginx certbot python3-certbot-nginx ufw
             systemctl start nginx
             systemctl enable nginx
-      
+
+            # Firewall Setup
+            ufw allow OpenSSH
+            ufw allow 'Nginx Full'
+            ufw enable
+
+            # SSL Setup
+            certbot --nginx -d api.ecommos.com --non-interactive --agree-tos -m your_email@example.com
+            nginx -s reload
+
+            # Install Docker
+            apt-get update && apt-get install -y docker.io
+            systemctl start docker
+            systemctl enable docker
+
+            # Pull Docker image and run it
+            docker pull devmeasin/ecommos:v1
+            docker run -d --name ecommos \
+              --restart unless-stopped \
+              -p 5001:5001 \
+              -e NODE_ENV=production \
+              devmeasin/ecommos:v1
+
+            # Nginx Configuration
+            echo "server {
+              listen 80;
+              server_name api.ecommos.com;
+
+              location / {
+                proxy_pass http://localhost:5001;
+                proxy_set_header Host \$host;
+                proxy_set_header X-Real-IP \$remote_addr;
+                proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto \$scheme;
+              }
+
+              location /.well-known/jwks.json {
+                alias /etc/nginx/public/.well-known/jwks.json;
+              }
+            }" > /etc/nginx/sites-available/default
+
             # Create jwks.json dynamically
             mkdir -p /etc/nginx/public/.well-known
             echo '{
@@ -92,41 +133,9 @@ jobs:
                     }
                 ]
             }' > /etc/nginx/public/.well-known/jwks.json
-      
-            # Pull Docker image and run it
-            docker pull devmeasin/ecommos:v1
-            docker run -d --name ecommos \
-              --restart unless-stopped \
-              -p 5001:5001 \
-              -e NODE_ENV=production \
-              devmeasin/ecommos:v1
-      
-            # Nginx Configuration
-            echo "server {
-              listen 80;
-              server_name api.ecommos.com;
-      
-              location / {
-                proxy_pass http://localhost:5001;
-                proxy_set_header Host \$host;
-                proxy_set_header X-Real-IP \$remote_addr;
-                proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto \$scheme;
-              }
-      
-              location /.well-known/jwks.json {
-                alias /etc/nginx/public/.well-known/jwks.json;
-              }
-            }" > /etc/nginx/sites-available/default
-      
-            # SSL Setup
-            certbot --nginx -d api.ecommos.com --non-interactive --agree-tos -m your_email@example.com
-            nginx -s reload
-      
-            # Firewall Setup
-            ufw allow OpenSSH
-            ufw allow 'Nginx Full'
-            ufw enable
+
+            # Reload Nginx to apply changes
+            systemctl reload nginx
           EOF
           
           echo "Droplet ecommos-primary deployed with IP $DROPLET_IP"
