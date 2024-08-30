@@ -22,6 +22,8 @@ const {
     REFRESH_TOKEN_SECRET,
     JWKS_URI,
 
+    SMS_SENDER_ID,
+
     BKASH_USERNAME,
     BKASH_PASSWORD,
     BKASH_API_KEY,
@@ -46,6 +48,8 @@ export const Config = {
     DB_NAME,
     REFRESH_TOKEN_SECRET,
     JWKS_URI,
+
+    SMS_SENDER_ID,
 
     BKASH_USERNAME,
     BKASH_PASSWORD,
