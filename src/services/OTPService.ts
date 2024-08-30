@@ -1,8 +1,10 @@
+import axios from "axios";
 import crypto from "crypto";
-import { Logger } from "winston";
-import { IUser as UserDocument } from "../models/userModel";
-import { OTP } from "../models/otpModel";
 import createHttpError from "http-errors";
+import { Logger } from "winston";
+import { OTP } from "../models/otpModel";
+import { IUser as UserDocument } from "../models/userModel";
+import { Config } from "../config";
 
 export class OTPService {
     constructor(private logger: Logger) {}
@@ -34,8 +36,19 @@ export class OTPService {
         // Logic to send the OTP to the user's phone via SMS
         this.logger.info("OTP sent to phone", { phone, otp });
 
+        try {
+            await axios.post("http://bulksmsbd.net/api/smsapi", {
+                api_key: "qEGNwSZ2CkWegZMgX8PO",
+                senderid: Config.SMS_SENDER_ID,
+                number: `88${phone}`,
+                message: `eCommOS Your OTP is ${otp}`,
+            });
+        } catch (error) {
+            this.logger.error("Failed to send OTP via SMS", error);
+            throw createHttpError(500, "Failed to send OTP via SMS");
+        }
+
         // Example of sending OTP via a fake SMS service (replace with actual implementation)
-        console.log(`Sending OTP ${otp} to phone number ${phone}`);
     }
 
     async verifyOTP(user: UserDocument, otp: string): Promise<boolean> {
