@@ -57,6 +57,7 @@ router.post(
             packageType,
             validityDays,
             apiAccess,
+            isUnlimited,
         } = req.body;
 
         try {
@@ -67,6 +68,7 @@ router.post(
                 packageType,
                 validityDays,
                 apiAccess,
+                isUnlimited,
             });
 
             await newPackage.save();

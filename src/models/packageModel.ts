@@ -7,6 +7,7 @@ export interface IPackage extends Document {
     packegeType: string;
     validityDays: number;
     apiAccess?: boolean;
+    isUnlimited?: boolean;
 }
 
 const PackageSchema = new Schema<IPackage>({
@@ -16,6 +17,7 @@ const PackageSchema = new Schema<IPackage>({
     requestLimit: { type: Number, required: true },
     validityDays: { type: Number, required: true }, // In days
     apiAccess: { type: Boolean, default: false },
+    isUnlimited: { type: Boolean, default: false },
 });
 
 export default model<IPackage>("Package", PackageSchema);

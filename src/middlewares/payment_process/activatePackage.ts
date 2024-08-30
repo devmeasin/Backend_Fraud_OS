@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import createHttpError from "http-errors";
 import Package from "../../models/packageModel"; // Adjust path
 import { UserPackage } from "../../models/userSubscriptionModel"; // Adjust path
+import { Config } from "../../config";
 
 export const activatePackage = async (req: Request, res: Response) => {
     const { userId, packageId, transaction } = req.body;
@@ -36,12 +37,13 @@ export const activatePackage = async (req: Request, res: Response) => {
             purchaseDate: new Date(),
             expiryDate,
             isActive: true,
+            isUnlimited: selectedPackage.isUnlimited,
         });
 
         await userPackage.save();
 
         res.redirect(
-            `http://localhost:5173/payment/successful?tnxId=${transaction.transactionId}`,
+            `${Config.FRONTEND_URL}/payment/successful?tnxId=${transaction.transactionId}`,
         );
         ``;
     } catch (error) {

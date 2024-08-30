@@ -57,4 +57,12 @@ export const packageValidationSchema: Schema = {
         },
         toBoolean: true, // Convert to boolean
     },
+    isUnlimited: {
+        in: ["body"],
+        optional: true, // Optional field
+        isBoolean: {
+            errorMessage: "isUnlimited must be a boolean",
+        },
+        toBoolean: true, // Convert to boolean
+    },
 };
