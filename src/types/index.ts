@@ -23,6 +23,8 @@ export interface UserData_delPassword {
     role?: "customer";
     status?: false;
     pathaoMerchantInfo?: IMerchantInfo;
+    apiSecret?: string;
+    apiSecretStatus?: boolean;
     createdAt?: Date;
     updatedAt?: Date;
     __v?: number;

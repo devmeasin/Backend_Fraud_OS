@@ -95,17 +95,20 @@ export class AuthController {
 
             res.cookie("accessToken", accessToken, {
                 domain: Config.MAIN_DOMAIN,
-                sameSite: "strict",
                 maxAge: 1000 * 60 * 60, // 1h
+                sameSite: "lax",
+                path: "/", // Ensure it's available across all subdomains
                 httpOnly: true,
-                // secure: true,
+                secure: true, // Use secure if you're running over HTTPS
             });
 
             res.cookie("refreshToken", refreshToken, {
                 domain: Config.MAIN_DOMAIN,
-                sameSite: "strict",
                 maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
+                sameSite: "lax",
+                path: "/", // Ensure it's available across all subdomains
                 httpOnly: true,
+                secure: true, // Use secure if you're running over HTTPS
             });
 
             res.status(201).json({ id: user._id, role: user.role });
@@ -165,17 +168,20 @@ export class AuthController {
 
             res.cookie("accessToken", accessToken, {
                 domain: Config.MAIN_DOMAIN,
-                sameSite: "strict",
                 maxAge: 1000 * 60 * 60, // 1h
+                sameSite: "lax",
+                path: "/", // Ensure it's available across all subdomains
                 httpOnly: true,
-                // secure: true,
+                secure: true, // Use secure if you're running over HTTPS
             });
 
             res.cookie("refreshToken", refreshToken, {
                 domain: Config.MAIN_DOMAIN,
-                sameSite: "strict",
                 maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
+                sameSite: "lax",
+                path: "/", // Ensure it's available across all subdomains
                 httpOnly: true,
+                secure: true, // Use secure if you're running over HTTPS
             });
             res.json({ id: user._id, role: user.role });
         } catch (err) {
@@ -234,17 +240,20 @@ export class AuthController {
 
             res.cookie("accessToken", accessToken, {
                 domain: Config.MAIN_DOMAIN,
-                sameSite: "strict",
                 maxAge: 1000 * 60 * 60, // 1h
+                sameSite: "lax",
+                path: "/", // Ensure it's available across all subdomains
                 httpOnly: true,
-                // secure: true,
+                secure: true, // Use secure if you're running over HTTPS
             });
 
             res.cookie("refreshToken", refreshToken, {
                 domain: Config.MAIN_DOMAIN,
-                sameSite: "strict",
                 maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
+                sameSite: "lax",
+                path: "/", // Ensure it's available across all subdomains
                 httpOnly: true,
+                secure: true, // Use secure if you're running over HTTPS
             });
             res.json({ id: user._id });
         } catch (err) {
@@ -260,8 +269,14 @@ export class AuthController {
             });
             this.logger.info("User has been logged out", { id: req.auth.sub });
 
-            res.clearCookie("accessToken");
-            res.clearCookie("refreshToken");
+            res.clearCookie("accessToken", {
+                domain: Config.MAIN_DOMAIN,
+                path: "/",
+            });
+            res.clearCookie("refreshToken", {
+                domain: Config.MAIN_DOMAIN,
+                path: "/",
+            });
             res.json({});
         } catch (err) {
             return next(err);
