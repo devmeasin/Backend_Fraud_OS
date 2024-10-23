@@ -17,15 +17,22 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
             name: { $ne: "FREE TRIAL" },
         });
 
-        // Transform _id to id
+        // Transform _id to id and include new fields
         const transformedPackages = packages.map((pkg) => ({
             id: (pkg as any)._id.toString(),
             name: pkg.name,
             price: pkg.price,
+            priceText: pkg.priceText,
             requestLimit: pkg.requestLimit,
             validityDays: pkg.validityDays,
-            packageType: pkg.packegeType,
+            packageType: pkg.packageType,
             apiAccess: pkg.apiAccess,
+            features: pkg.features,
+            unavailableFeatures: pkg.unavailableFeatures,
+            isFree: pkg.isFree,
+            isPopular: pkg.isPopular,
+            duration: pkg.duration,
+            discount: pkg.discount,
         }));
 
         res.json(transformedPackages);
@@ -44,6 +51,7 @@ router.post(
         if (authReq.auth.role !== "admin") {
             return next(createHttpError(401, "Unauthorized Request!"));
         }
+
         await checkSchema(packageValidationSchema).run(req);
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -53,22 +61,36 @@ router.post(
         const {
             name,
             price,
+            priceText,
             requestLimit,
             packageType,
             validityDays,
             apiAccess,
             isUnlimited,
+            features,
+            unavailableFeatures,
+            isFree,
+            isPopular,
+            duration,
+            discount,
         } = req.body;
 
         try {
             const newPackage: IPackage = new Package({
                 name,
                 price,
+                priceText,
                 requestLimit,
                 packageType,
                 validityDays,
                 apiAccess,
                 isUnlimited,
+                features,
+                unavailableFeatures,
+                isFree,
+                isPopular,
+                duration,
+                discount,
             });
 
             await newPackage.save();

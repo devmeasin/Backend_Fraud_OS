@@ -17,7 +17,13 @@ router.get(
             const transactions: ITransaction[] = await Transaction.find({
                 userId,
             })
-                .populate(["userId", "packageId"])
+                .populate([
+                    {
+                        path: "userId",
+                        select: "fullName companyName email phone",
+                    }, // Only select necessary fields
+                    { path: "packageId", select: "name" }, // Only select the `name` from package
+                ])
                 .sort({ createdAt: -1 });
 
             // Transform the transactions
@@ -25,7 +31,6 @@ router.get(
                 const transactionObj = transaction.toObject();
 
                 const date = new Date(transactionObj.purchaseDate as string);
-                // Options for formatting the date
                 const dateFormatter = new Intl.DateTimeFormat("en-US", {
                     year: "numeric",
                     month: "long",
@@ -42,8 +47,12 @@ router.get(
                     email: transactionObj.userId.email,
                     phone: transactionObj.userId.phone,
                 };
-                // Only keep the `name` property from `packageId`
-                transactionObj.packageName = transactionObj.packageId.name;
+
+                // Handle the case where the package is deleted or missing
+                transactionObj.packageName = transactionObj.packageId
+                    ? transactionObj.packageId.name
+                    : "Package Deleted"; // Fallback if packageId is not found
+
                 transactionObj.purchaseDate = formattedDate;
 
                 delete transactionObj.userId;
@@ -56,7 +65,7 @@ router.get(
 
             res.json(transformedTransactions);
         } catch (err) {
-            next(createHttpError(400, "Packages not found!"));
+            next(createHttpError(400, "Error retrieving transactions!"));
         }
     },
 );
