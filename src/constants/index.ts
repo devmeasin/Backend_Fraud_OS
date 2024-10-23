@@ -5,9 +5,11 @@ export const Roles = {
 } as const;
 
 export const CourierURI = {
-    redx_url:
-        "https://redx.com.bd/api/redx_se/admin/parcel/customer-success-return-rate?phoneNumber=",
-
+    redx_url: {
+        login_url: "https://api.redx.com.bd/v4/auth/login",
+        fraud_check_url:
+            "https://redx.com.bd/api/redx_se/admin/parcel/customer-success-return-rate?phoneNumber=",
+    },
     steadfast_url: {
         login_url: "https://steadfast.com.bd/login",
         fraud_check_url: "https://steadfast.com.bd/user/frauds/check/",
