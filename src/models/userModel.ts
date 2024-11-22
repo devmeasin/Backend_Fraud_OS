@@ -28,6 +28,7 @@ export interface IUser extends Document {
     remainingRequests: number;
     apiSecret?: string;
     apiSecretStatus?: boolean; // New field to enable/disable API secret
+    allowedDomains: string[]; // Array to store allowed domains/subdomains
 }
 
 const userSchema = new Schema<IUser>(
@@ -74,6 +75,7 @@ const userSchema = new Schema<IUser>(
         },
         apiSecret: { type: String },
         apiSecretStatus: { type: Boolean, default: true }, // Default to enabled
+        allowedDomains: { type: [String], default: [] }, // Store allowed domains/subdomains
     },
     { timestamps: true },
 );

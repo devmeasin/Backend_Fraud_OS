@@ -15,6 +15,7 @@ export interface IPackage extends Document {
     isPopular: boolean;
     duration: string;
     discount?: string;
+    siteAccessLimit?: number;
 }
 
 const packageSchema = new Schema<IPackage>({
@@ -32,6 +33,7 @@ const packageSchema = new Schema<IPackage>({
     isPopular: { type: Boolean, default: false },
     duration: { type: String, required: true },
     discount: { type: String, required: false },
+    siteAccessLimit: { type: Number, required: false },
 });
 
 const Package = model<IPackage>("Package", packageSchema);

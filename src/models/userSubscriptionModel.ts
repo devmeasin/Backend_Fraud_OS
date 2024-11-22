@@ -11,6 +11,7 @@ export interface IUserPackage extends Document {
     expiryDate: Date;
     isActive: boolean;
     isUnlimited: boolean; // New field for unlimited requests
+    siteAccessLimit: number;
 }
 
 const userPackageSchema = new Schema<IUserPackage>(
@@ -31,6 +32,7 @@ const userPackageSchema = new Schema<IUserPackage>(
         expiryDate: { type: Date, required: true },
         isActive: { type: Boolean, default: true },
         isUnlimited: { type: Boolean, default: false }, // New field for unlimited requests
+        siteAccessLimit: { type: Number, default: 0 },
     },
     { timestamps: true },
 );

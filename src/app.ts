@@ -8,6 +8,7 @@ import authRouter from "./routes/authRoutes";
 import fraudCheckerRouter from "./routes/fraudCheckerRoutes";
 import paymentRouter from "./routes/paymentRoutes";
 import packageRouter from "./routes/packageRoutes";
+import manualActivePackage from "./routes/manualActivePackage";
 import billingRouter from "./routes/billingRoutes";
 import apiSecretRouter from "./routes/apiSecretRoute";
 
@@ -43,6 +44,7 @@ app.use("/api/v1/payment", paymentRouter);
 
 // for package routes
 app.use("/api/v1/packages", packageRouter);
+app.use("/api/v1/packages", manualActivePackage);
 
 // for billing routes
 app.use("/api/v1/billing", billingRouter);

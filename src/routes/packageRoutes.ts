@@ -102,17 +102,32 @@ router.post(
 );
 
 // Check User Current Package
+// Check User Current Package
 router.get(
     "/current",
     authenticate,
     async (req: Request, res: Response, next: NextFunction) => {
         const authReq = req as AuthRequest;
         try {
+            // Fetch the user package and populate the packageId
             const userCurrentPackage = await UserPackage.find({
                 userId: authReq.auth.sub,
                 isActive: true,
-            }).sort({ createdAt: -1 });
-            res.json({ userCurrentPackage });
+            })
+                .sort({ createdAt: -1 })
+                .populate("packageId", "name"); // Only populate the 'name' field of packageId
+
+            // Map over the userCurrentPackage to format the response
+            const formattedPackage = userCurrentPackage.map((pkg) => {
+                const { packageId, ...rest } = pkg.toObject(); // Remove packageId
+                return {
+                    ...rest, // Keep all other fields from the original object
+                    packageName:
+                        (packageId as IPackage)?.name || "Package Deleted", // Only include the name from packageId
+                };
+            });
+
+            res.json({ userCurrentPackage: formattedPackage });
         } catch (err) {
             next(createHttpError(400, "User Package not found!"));
         }

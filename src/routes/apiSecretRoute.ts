@@ -8,6 +8,10 @@ import {
 } from "../services/apiSecretService";
 import { AuthRequest } from "../types";
 import validateApiSecret from "../middlewares/validateApiSecret";
+import {
+    addDomainToUser,
+    removeDomainFromUser,
+} from "../services/DomainMGService";
 
 const router = express.Router();
 
@@ -87,11 +91,55 @@ router.post(
 router.post(
     "/validator",
     validateApiSecret,
-    async (req: Request, res: Response) => {
+    (req: Request, res: Response, next: NextFunction) => {
         try {
             res.json({ message: "API secret is Valid" });
         } catch (error) {
-            res.status(500).json({ message: "Error validating API secret" });
+            return next(
+                createHttpError(500, "Error validating API secret with domain"),
+            );
+        }
+    },
+);
+
+// Route to add a domain to the user
+router.post(
+    "/domains/add",
+    authenticate,
+    async (req: Request, res: Response, next: NextFunction) => {
+        const authReq = req as AuthRequest;
+        const { domain } = req.body;
+
+        if (!domain) {
+            return next(createHttpError(400, "Domain is required"));
+        }
+
+        try {
+            await addDomainToUser(authReq.auth.sub, domain as string);
+            res.json({ message: "Domain added successfully" });
+        } catch (error) {
+            next(error);
+        }
+    },
+);
+
+// Route to remove a domain from the user
+router.post(
+    "/domains/remove",
+    authenticate,
+    async (req: Request, res: Response, next: NextFunction) => {
+        const authReq = req as AuthRequest;
+        const { domain } = req.body;
+
+        if (!domain) {
+            return next(createHttpError(400, "Domain is required"));
+        }
+
+        try {
+            await removeDomainFromUser(authReq.auth.sub, domain as string);
+            res.json({ message: "Domain removed successfully" });
+        } catch (error) {
+            next(error);
         }
     },
 );

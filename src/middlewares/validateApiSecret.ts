@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { User } from "../models/userModel"; // Adjust the path to your User model
 import logger from "../utils/logger";
 import createHttpError from "http-errors";
+import { URL } from "node:url";
 
 interface AuthRequest extends Request {
     auth?: {
@@ -10,7 +11,26 @@ interface AuthRequest extends Request {
     };
 }
 
-// Middleware to validate API secret
+// Helper function to check if the domain is allowed
+const isDomainAllowed = (
+    allowedDomains: string[],
+    origin: string | undefined,
+) => {
+    if (!origin) return false;
+
+    try {
+        const parsedOrigin = new URL(origin).hostname;
+        return allowedDomains.some(
+            (domain) =>
+                parsedOrigin === domain || parsedOrigin.endsWith(`.${domain}`),
+        );
+    } catch (error) {
+        logger.error("Error parsing origin:", error);
+        return false;
+    }
+};
+
+// Middleware to validate API secret and allowed domain
 const validateApiSecret = async (
     req: Request,
     res: Response,
@@ -18,6 +38,7 @@ const validateApiSecret = async (
 ) => {
     const authReq = req as AuthRequest;
     const authHeader = req.headers.authorization || "";
+    const origin = req.headers.referer || req.headers.origin;
 
     if (!authHeader.startsWith("Bearer ")) {
         return next(
@@ -37,6 +58,15 @@ const validateApiSecret = async (
         });
 
         if (user) {
+            if (
+                user.allowedDomains.length > 0 &&
+                !isDomainAllowed(user.allowedDomains, origin)
+            ) {
+                return next(
+                    createHttpError(403, "Forbidden: Domain not allowed"),
+                );
+            }
+
             authReq.auth = {
                 sub: user._id.toString(),
                 role: user.role,

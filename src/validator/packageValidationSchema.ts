@@ -12,26 +12,33 @@ export const packageValidationSchema: Schema = {
     },
     price: {
         in: ["body"],
-        isNumeric: {
-            errorMessage: "Price must be a number",
+        isString: {
+            errorMessage: "Price must be a string",
         },
         notEmpty: {
             errorMessage: "Price is required",
         },
-        toFloat: true, // Convert to float
+    },
+    priceText: {
+        in: ["body"],
+        isString: {
+            errorMessage: "Price must be a string",
+        },
+        notEmpty: {
+            errorMessage: "Price is required",
+        },
     },
     requestLimit: {
         in: ["body"],
         isInt: {
             errorMessage: "Request Limit must be an integer",
         },
-        notEmpty: {
-            errorMessage: "Request Limit is required",
-        },
+        optional: true, // Optional since free packages may not have a request limit
         toInt: true, // Convert to integer
     },
     packageType: {
         in: ["body"],
+        optional: true, // Optional field
         isString: {
             errorMessage: "Package Type must be a string",
         },
@@ -64,5 +71,57 @@ export const packageValidationSchema: Schema = {
             errorMessage: "isUnlimited must be a boolean",
         },
         toBoolean: true, // Convert to boolean
+    },
+    features: {
+        in: ["body"],
+        isArray: {
+            errorMessage: "Features must be an array",
+        },
+        notEmpty: {
+            errorMessage: "Features are required",
+        },
+    },
+    unavailableFeatures: {
+        in: ["body"],
+        optional: true,
+        isArray: {
+            errorMessage: "Unavailable Features must be an array",
+        },
+    },
+    isFree: {
+        in: ["body"],
+        isBoolean: {
+            errorMessage: "isFree must be a boolean",
+        },
+        notEmpty: {
+            errorMessage: "isFree is required",
+        },
+        toBoolean: true, // Convert to boolean
+    },
+    isPopular: {
+        in: ["body"],
+        isBoolean: {
+            errorMessage: "isPopular must be a boolean",
+        },
+        notEmpty: {
+            errorMessage: "isPopular is required",
+        },
+        toBoolean: true, // Convert to boolean
+    },
+    duration: {
+        in: ["body"],
+        isString: {
+            errorMessage: "Duration must be a string",
+        },
+        notEmpty: {
+            errorMessage: "Duration is required",
+        },
+    },
+    discount: {
+        in: ["body"],
+        optional: true, // Optional field
+        isString: {
+            errorMessage: "Discount must be a string if provided",
+        },
     },
 };
