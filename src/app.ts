@@ -6,6 +6,7 @@ import "reflect-metadata";
 import logger from "./utils/logger";
 import authRouter from "./routes/authRoutes";
 import fraudCheckerRouter from "./routes/fraudCheckerRoutes";
+import companiesRoute from "./routes/companiesRoute";
 import paymentRouter from "./routes/paymentRoutes";
 import packageRouter from "./routes/packageRoutes";
 import manualActivePackage from "./routes/manualActivePackage";
@@ -38,6 +39,9 @@ app.use("/api/v1/auth", authRouter);
 
 // for fraud checker routes
 app.use("/api/v1/fraud-checker", fraudCheckerRouter);
+
+// company = "Ecommos";
+app.use("/api/v1/companies", companiesRoute);
 
 // for payment routes
 app.use("/api/v1/payment", paymentRouter);

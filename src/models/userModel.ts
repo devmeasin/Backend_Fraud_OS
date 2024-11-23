@@ -18,11 +18,15 @@ export interface IUser extends Document {
     phone: string;
     email?: string;
     password: string;
-    role: "customer" | "admin" | "manager";
+    role: "OWNER" | "ADMIN" | "EMPLOYEE";
     status: string;
     isVerified: boolean;
     isPhoneVerified: boolean;
     isEmailVerified: boolean;
+    companies: {
+        companyId: Schema.Types.ObjectId;
+        role: "OWNER" | "ADMIN" | "EMPLOYEE";
+    }[];
     pathaoMerchantInfo?: IMerchantInfo;
     currentPackage?: Schema.Types.ObjectId;
     remainingRequests: number;
@@ -47,10 +51,24 @@ const userSchema = new Schema<IUser>(
         isEmailVerified: { type: Boolean, default: false },
         isPhoneVerified: { type: Boolean, default: false },
         isVerified: { type: Boolean, default: false },
+        companies: [
+            {
+                companyId: {
+                    type: Schema.Types.ObjectId,
+                    ref: "Company",
+                    required: true,
+                },
+                role: {
+                    type: String,
+                    enum: ["OWNER", "ADMIN", "EMPLOYEE"],
+                    required: true,
+                },
+            },
+        ],
         role: {
             type: String,
-            enum: ["customer", "admin", "manager"],
-            default: "customer",
+            enum: ["OWNER", "ADMIN", "EMPLOYEE"],
+            default: "OWNER",
             immutable: true, // Prevent changes after creation
         },
         pathaoMerchantInfo: {
