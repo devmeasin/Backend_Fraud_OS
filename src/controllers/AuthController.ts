@@ -20,6 +20,7 @@ import {
     forgetPasswordSchema,
     loginSchema,
     registerSchema,
+    resetPasswordByAdminSchema,
     resetPasswordSchema,
 } from "../validator/authValidationSchema";
 import { genarateOTPShema } from "../validator/genarateOTP";
@@ -421,6 +422,80 @@ export class AuthController {
             });
         } catch (err) {
             return next(err);
+        }
+    }
+
+    async adminResetPassword(req: Request, res: Response, next: NextFunction) {
+        await checkSchema(resetPasswordByAdminSchema).run(req);
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { phone, newPassword }: { phone: string; newPassword: string } =
+            req.body;
+
+        try {
+            // Validate request inputs (you can integrate this with `express-validator` if desired)
+            if (!phone || !newPassword) {
+                throw createHttpError(
+                    400,
+                    "Phone and new password are required.",
+                );
+            }
+
+            const user = await this.userService.findByPhone(phone);
+            if (!user) {
+                throw createHttpError(404, "User not found.");
+            }
+
+            // Admin resets the user's password
+            await this.credentialService.updatePassword(user, newPassword);
+
+            res.status(200).json({
+                message: `Password for user with phone ${phone} has been updated successfully.`,
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    async activateUserProfile(req: Request, res: Response, next: NextFunction) {
+        const { phone }: { phone: string } = req.body;
+
+        try {
+            // Find the user by phone
+            const user = await this.userService.findByPhone(phone);
+            if (!user) {
+                throw createHttpError(404, "User not found");
+            }
+
+            // Check if the user is already active, verified, and phone-verified
+            if (
+                user.status === "active" &&
+                user.isVerified &&
+                user.isPhoneVerified
+            ) {
+                return res.status(400).json({
+                    message: "User profile is already active and verified",
+                });
+            }
+
+            // Process registration data
+            const merchantInfoData = await processUserRegistration(user);
+
+            // Update Pathao Merchant Info
+            const updatedUser = await this.userService.updatePathaoMerchantInfo(
+                user._id,
+                merchantInfoData,
+            );
+
+            res.status(200).json({
+                message: "User profile activated successfully",
+                user: updatedUser,
+            });
+        } catch (error) {
+            return next(error);
         }
     }
 }

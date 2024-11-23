@@ -17,6 +17,7 @@ import valiadateRefreshToken from "../middlewares/valiadateRefreshToken";
 
 // Type imports
 import { AuthRequest } from "../types";
+import isAdmin from "../middlewares/isAdmin";
 
 const router = express.Router();
 
@@ -91,5 +92,23 @@ router.post(
 //     (req: Request, res: Response, next: NextFunction) =>
 //         otpController.generateOTP(req, res, next),
 // );
+
+// All Admin Routes here
+
+router.post(
+    "/admin/reset-password",
+    authenticate,
+    isAdmin, // Ensures only admins can access this route
+    (req: Request, res: Response, next: NextFunction) =>
+        authController.adminResetPassword(req as AuthRequest, res, next),
+);
+
+router.post(
+    "/admin/active_user_profile",
+    authenticate,
+    isAdmin,
+    (req: Request, res: Response, next: NextFunction) =>
+        authController.activateUserProfile(req as AuthRequest, res, next),
+);
 
 export default router;

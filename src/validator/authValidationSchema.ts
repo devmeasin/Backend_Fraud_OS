@@ -100,5 +100,21 @@ export const resetPasswordSchema: Schema = {
         },
     },
 };
+export const resetPasswordByAdminSchema: Schema = {
+    phone: {
+        in: ["body"],
+        isMobilePhone: {
+            options: ["bn-BD"],
+        },
+        errorMessage: "Invalid phone number format for BD",
+    },
+    newPassword: {
+        in: ["body"],
+        isLength: {
+            options: { min: 8 },
+            errorMessage: "Password must be at least 8 characters long",
+        },
+    },
+};
 
 // Define other schemas like OTP verification, password reset, etc.

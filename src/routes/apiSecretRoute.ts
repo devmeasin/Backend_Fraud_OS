@@ -5,7 +5,7 @@ import {
     getUserApiSecret,
     setApiSecretStatus,
     updateUserApiSecret,
-} from "../services/apiSecretService";
+} from "../services/ApiSecretService";
 import { AuthRequest } from "../types";
 import validateApiSecret from "../middlewares/validateApiSecret";
 import {

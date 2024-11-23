@@ -51,6 +51,7 @@ const userSchema = new Schema<IUser>(
             type: String,
             enum: ["customer", "admin", "manager"],
             default: "customer",
+            immutable: true, // Prevent changes after creation
         },
         pathaoMerchantInfo: {
             type: {
