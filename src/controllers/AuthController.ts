@@ -26,6 +26,14 @@ import {
 import { genarateOTPShema } from "../validator/genarateOTP";
 import { verifyOTPShema } from "../validator/VerifyOTPShema";
 
+interface EnhancedJwtPayload {
+    name: string;
+    role: "owner" | "admin" | "employee"; // lowercase roles
+    cid: string; // Company ID
+    plan: string;
+    sub: string;
+}
+
 export class AuthController {
     constructor(
         private userService: UserService,
@@ -34,6 +42,50 @@ export class AuthController {
         private credentialService: CredentialService,
         private otpService: OTPService,
     ) {}
+
+    private generateAuthTokens(user: any, activeCompanyId?: string) {
+        const company = activeCompanyId
+            ? user.companies.find(
+                  (c: { companyId: { toString: () => string } }) =>
+                      c.companyId.toString() === activeCompanyId,
+              )
+            : user.companies[0];
+
+        const payload: EnhancedJwtPayload = {
+            name: user.fullName,
+            role: user.role.toLowerCase(), // Converting OWNER -> owner
+            cid: company?.companyId.toString() || "",
+            plan: user.currentPackage?.name || "basic",
+            sub: user._id.toString(),
+        };
+
+        const accessToken = this.tokenService.generateAccessToken(payload);
+        return accessToken;
+    }
+
+    private async setAuthCookies(
+        res: Response,
+        accessToken: string,
+        refreshToken: string,
+    ) {
+        res.cookie("accessToken", accessToken, {
+            domain: Config.MAIN_DOMAIN,
+            maxAge: 1000 * 60 * 60, // 1h
+            sameSite: "lax",
+            path: "/",
+            httpOnly: true,
+            secure: true,
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+            domain: Config.MAIN_DOMAIN,
+            maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
+            sameSite: "lax",
+            path: "/",
+            httpOnly: true,
+            secure: true,
+        });
+    }
 
     async register(req: Request, res: Response, next: NextFunction) {
         await checkSchema(registerSchema).run(req);
@@ -119,25 +171,13 @@ export class AuthController {
     }
 
     async login(req: Request, res: Response, next: NextFunction) {
-        await checkSchema(loginSchema).run(req);
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const { phone, password }: { phone: string; password: string } =
-            req.body;
-
         try {
+            const { phone, password, companyId } = req.body;
+
             const user = await this.userService.findByPhone(phone);
+
             if (!user) {
                 throw createHttpError(400, "Phone or password is incorrect!");
-            }
-
-            if (!user.isPhoneVerified) {
-                const otp = await this.otpService.generateOTP(user);
-                // await this.otpService.sendOTP(phone, otp);
-                await this.otpService.sendOTP(phone, otp);
             }
 
             const isMatchPassword =
@@ -149,42 +189,34 @@ export class AuthController {
                 throw createHttpError(400, "Phone or password is incorrect!");
             }
 
-            this.logger.info("User has been logged in", { id: user._id });
-
-            const payload: JwtPayload = {
-                sub: String(user._id),
-                role: user.role,
-            };
-
-            const accessToken = this.tokenService.generateAccessToken(payload);
+            // Generate tokens with simplified payload
+            const accessToken = this.generateAuthTokens(user, companyId);
 
             // Persist refresh token
             const newRefreshToken =
                 await this.tokenService.persistRefreshToken(user);
-
             const refreshToken = this.tokenService.generateRefreshToken({
-                id: String(newRefreshToken._id),
-                ...payload,
+                sub: user._id.toString(),
             });
 
-            res.cookie("accessToken", accessToken, {
-                domain: Config.MAIN_DOMAIN,
-                maxAge: 1000 * 60 * 60, // 1h
-                sameSite: "lax",
-                path: "/", // Ensure it's available across all subdomains
-                httpOnly: true,
-                secure: true, // Use secure if you're running over HTTPS
-            });
+            // Set cookies
+            await this.setAuthCookies(res, accessToken, refreshToken);
 
-            res.cookie("refreshToken", refreshToken, {
-                domain: Config.MAIN_DOMAIN,
-                maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
-                sameSite: "lax",
-                path: "/", // Ensure it's available across all subdomains
-                httpOnly: true,
-                secure: true, // Use secure if you're running over HTTPS
+            const activeCompany = companyId
+                ? user.companies.find(
+                      (c) => c.companyId.toString() === companyId,
+                  )
+                : user.companies[0];
+
+            // Return the same structure as the token payload
+            res.json({
+                name: user.fullName,
+                role: user.role.toLowerCase(),
+                cid: activeCompany?.companyId.toString() || "",
+                plan: user?.currentPackage || "basic",
+                sub: user._id.toString(),
+                accessToken,
             });
-            res.json({ id: user._id, role: user.role });
         } catch (err) {
             return next(err);
         }
@@ -212,51 +244,36 @@ export class AuthController {
 
     async refresh(req: AuthRequest, res: Response, next: NextFunction) {
         try {
-            const payload: JwtPayload = {
-                sub: String(req.auth.sub),
-                role: req.auth.role,
-            };
-
             const user = await this.userService.findById(req.auth.sub);
 
             if (!user) {
                 throw createHttpError(404, "User not found");
             }
 
-            this.logger.info("User has been refreshed", { id: req.auth.sub });
+            const accessToken = this.generateAuthTokens(
+                user,
+                (req.auth as unknown as EnhancedJwtPayload).cid,
+            );
 
-            const accessToken = this.tokenService.generateAccessToken(payload);
-
-            // Persist refresh token
             const newRefreshToken =
                 await this.tokenService.persistRefreshToken(user);
+            const refreshToken = this.tokenService.generateRefreshToken({
+                sub: user._id.toString(),
+            });
+
+            await this.setAuthCookies(res, accessToken, refreshToken);
 
             // Delete old refresh token
-            await this.tokenService.deleteRefreshToken(req.auth.id);
+            await this.tokenService.deleteRefreshToken(req.auth.sub);
 
-            const refreshToken = this.tokenService.generateRefreshToken({
-                id: String(newRefreshToken._id),
-                ...payload,
+            res.json({
+                name: user.fullName,
+                role: user.role.toLowerCase(),
+                cid: req.auth.cid,
+                plan: user?.currentPackage || "basic",
+                sub: user._id.toString(),
+                accessToken,
             });
-
-            res.cookie("accessToken", accessToken, {
-                domain: Config.MAIN_DOMAIN,
-                maxAge: 1000 * 60 * 60, // 1h
-                sameSite: "lax",
-                path: "/", // Ensure it's available across all subdomains
-                httpOnly: true,
-                secure: true, // Use secure if you're running over HTTPS
-            });
-
-            res.cookie("refreshToken", refreshToken, {
-                domain: Config.MAIN_DOMAIN,
-                maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
-                sameSite: "lax",
-                path: "/", // Ensure it's available across all subdomains
-                httpOnly: true,
-                secure: true, // Use secure if you're running over HTTPS
-            });
-            res.json({ id: user._id });
         } catch (err) {
             return next(err);
         }

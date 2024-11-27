@@ -12,6 +12,7 @@ import packageRouter from "./routes/packageRoutes";
 import manualActivePackage from "./routes/manualActivePackage";
 import billingRouter from "./routes/billingRoutes";
 import apiSecretRouter from "./routes/apiSecretRoute";
+import productRoutes from "./routes/productRoutes";
 
 const app = express();
 
@@ -55,6 +56,9 @@ app.use("/api/v1/billing", billingRouter);
 
 // for user generated api secret routes
 app.use("/api/v1/api-secret", apiSecretRouter);
+
+// for products routes
+app.use("/api/v1/products", productRoutes);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
