@@ -13,6 +13,8 @@ import manualActivePackage from "./routes/manualActivePackage";
 import billingRouter from "./routes/billingRoutes";
 import apiSecretRouter from "./routes/apiSecretRoute";
 import productRoutes from "./routes/productRoutes";
+import webhookRoutes from "./routes/webhookRoutes";
+import orderRoutes from "./routes/orderRoutes";
 
 const app = express();
 
@@ -59,6 +61,12 @@ app.use("/api/v1/api-secret", apiSecretRouter);
 
 // for products routes
 app.use("/api/v1/products", productRoutes);
+
+// for webhook routes
+app.use("/api/v1/webhooks", webhookRoutes);
+
+// for order routes
+app.use("/api/v1/orders", orderRoutes);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {

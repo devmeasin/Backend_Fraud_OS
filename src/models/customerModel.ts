@@ -16,7 +16,7 @@ interface CustomerTag {
     name: string;
 }
 
-export interface CustomerDocument extends Document {
+export interface ICustomer extends Document {
     companyId: mongoose.Types.ObjectId;
     name: string;
     phone: string;
@@ -48,7 +48,7 @@ const LocationSchema = new Schema<Location>(
     { _id: false },
 );
 
-const CustomerSchema = new Schema<CustomerDocument>(
+const CustomerSchema = new Schema<ICustomer>(
     {
         companyId: {
             type: Schema.Types.ObjectId,
@@ -74,11 +74,13 @@ const CustomerSchema = new Schema<CustomerDocument>(
         type: {
             type: String,
             enum: ["E_COMMERCE_CUSTOMER", "DISTRIBUTOR", "RETAILER"],
+            default: "E_COMMERCE_CUSTOMER",
             required: true,
         },
         paymentMethod: {
             type: String,
             enum: ["CASH_ON_DELIVERY", "CASH", "OTHER"],
+            default: "CASH_ON_DELIVERY",
             required: true,
         },
         paymentTerms: {
@@ -87,8 +89,8 @@ const CustomerSchema = new Schema<CustomerDocument>(
         },
         locations: [LocationSchema],
         customerTag: {
-            id: { type: Number, required: true },
-            name: { type: String, required: true, trim: true },
+            id: { type: Number, default: null },
+            name: { type: String, default: null, trim: true },
         },
         salesOrderCount: {
             type: Number,
@@ -113,4 +115,4 @@ const CustomerSchema = new Schema<CustomerDocument>(
     },
 );
 
-export default mongoose.model<CustomerDocument>("Customer", CustomerSchema);
+export default mongoose.model<ICustomer>("Customer", CustomerSchema);
