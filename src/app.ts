@@ -16,6 +16,7 @@ import productRoutes from "./routes/productRoutes";
 import webhookRoutes from "./routes/webhookRoutes";
 import orderRoutes from "./routes/orderRoutes";
 import customerRoutes from "./routes/customerRoutes";
+import deliveryPartnerRoutes from "./routes/deliveryPartnersRoutes";
 
 const app = express();
 
@@ -65,6 +66,9 @@ app.use("/api/v1/api-secret", apiSecretRouter);
 
 // for products routes
 app.use("/api/v1/products", productRoutes);
+
+// for delivery partners routes
+app.use("/api/v1/delivery-partners", deliveryPartnerRoutes);
 
 // for webhook routes
 app.use("/api/v1/webhooks", webhookRoutes);
