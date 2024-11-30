@@ -15,6 +15,7 @@ import apiSecretRouter from "./routes/apiSecretRoute";
 import productRoutes from "./routes/productRoutes";
 import webhookRoutes from "./routes/webhookRoutes";
 import orderRoutes from "./routes/orderRoutes";
+import customerRoutes from "./routes/customerRoutes";
 
 const app = express();
 
@@ -39,6 +40,9 @@ app.get("/", (req, res) => {
 
 // for auth routes
 app.use("/api/v1/auth", authRouter);
+
+// for customer routes
+app.use("/api/v1/customers", customerRoutes);
 
 // for fraud checker routes
 app.use("/api/v1/fraud-checker", fraudCheckerRouter);
