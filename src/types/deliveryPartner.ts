@@ -1,13 +1,20 @@
-export type DeliveryPartnerType = "PATHAO" | "STEADFAST";
+export type DeliveryPartnerType =
+    | "PATHAO"
+    | "STEADFAST"
+    | "REDX"
+    | "PAPERFLY"
+    | "OTHER";
 
 export interface DeliveryPartner {
     id: string;
     type: DeliveryPartnerType;
-    companyId: string;
     name: string;
+    companyId: string;
+    storeId?: string;
     integrationConfig: {
         clientId?: string;
         secretKey: string;
+        phone?: string;
         username?: string;
         password?: string;
         apiKey?: string;

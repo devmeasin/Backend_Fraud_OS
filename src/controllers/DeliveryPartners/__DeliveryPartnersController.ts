@@ -21,7 +21,7 @@ const ERROR_MESSAGES = {
     INVALID_PARTNER_TYPE: "Invalid delivery partner type",
 } as const;
 
-export class DeliveryPartnerController {
+export class _DeliveryPartnerController {
     constructor(
         private logger: Logger,
         private deliveryPartnerService: DeliveryPartnerService,
@@ -59,13 +59,16 @@ export class DeliveryPartnerController {
                             },
                         },
                     );
-                    return response.status === HTTP_STATUS.OK
-                        ? "verified"
+                    return response.data?.status === HTTP_STATUS.OK &&
+                        response.data?.current_balance >= 0
+                        ? "success"
                         : null;
 
                 default:
                     throw new Error(ERROR_MESSAGES.INVALID_PARTNER_TYPE);
             }
+
+            console.log("XXSADASDASD", response);
         } catch (error) {
             throw new Error(ERROR_MESSAGES.INVALID_CREDENTIALS(type));
         }

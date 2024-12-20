@@ -33,16 +33,22 @@ export class TokenService {
         });
     }
 
-    async persistRefreshToken(user: IUser): Promise<IRefreshToken> {
+    async persistRefreshToken(
+        user: IUser,
+        cid: string,
+    ): Promise<IRefreshToken> {
         const newRefreshToken = new this.refreshTokenModel({
             expiredAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
             user: user._id, // Assuming `user` is an object with `_id` property
+            cid: cid,
         });
 
         return await newRefreshToken.save();
     }
 
-    async deleteRefreshToken(tokenId: string): Promise<void> {
-        await this.refreshTokenModel.deleteMany({ user: tokenId }).exec();
+    async deleteRefreshToken(tokenId: string, cid: string): Promise<void> {
+        await this.refreshTokenModel
+            .deleteMany({ user: tokenId, cid: cid })
+            .exec();
     }
 }

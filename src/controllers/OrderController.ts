@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { checkSchema, validationResult } from "express-validator";
 import { OrderService } from "../services/OrderService";
-import { OrderStatus } from "../models/orderModel";
+import { OrderStatus } from "../models/orderChannel/orderModel";
 import { AuthRequest } from "../types";
 import logger from "../utils/logger";
 import {
@@ -14,7 +14,7 @@ export class OrderController {
 
     async createOrder(req: Request, res: Response) {
         const authReq = req as AuthRequest;
-        const cid = req.body.companyId || authReq.auth.cid;
+        const cid = authReq.auth.cid || req.body.companyId;
 
         await checkSchema(createOrderSchema).run(req);
         const errors = validationResult(req);
@@ -25,43 +25,59 @@ export class OrderController {
         }
 
         if (!cid) {
-            return res
-                .status(400)
-                .json({ success: false, message: "Company ID is required" });
+            return res.status(400).json({
+                success: false,
+                message: "Company ID is required",
+            });
         }
 
         try {
-            // Step 1: Check if customer exists
+            // Check required products and amounts
+            if (!req.body.products || req.body.products.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "At least one product is required",
+                });
+            }
+
+            if (!req.body.amounts || !req.body.amounts.totalAmount) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Order amounts are required",
+                });
+            }
+
+            // Step 1: Check or create customer
             let customer = await Customer.findOne({
-                phone: req.body.customerPhone,
                 companyId: cid,
+                phone: req.body.customerPhone,
             });
 
-            // Step 2: If customer doesn't exist, create a new customer
             if (!customer) {
                 customer = new Customer({
                     phone: req.body.customerPhone,
                     companyId: cid,
-                    ...req.body.customer, // Include additional customer fields (e.g., name, email, address)
+                    ...req.body.customer,
                 });
                 await customer.save();
             }
 
+            // Step 2: Prepare order data
             const orderData = {
                 ...req.body,
                 companyId: cid,
-                customerId: customer._id,
-                dates: {
-                    ...req.body.dates,
-                    orderDate: new Date(),
-                },
+                customer: customer._id,
+                dates: { orderDate: new Date() },
             };
 
+            // Increment customer order count
             customer.salesOrderCount = (customer.salesOrderCount || 0) + 1;
             await customer.save();
 
+            // Step 3: Create the order
             const order = await this.orderService.createOrder(orderData);
             logger.info(`Order created successfully: ${order.internalId}`);
+
             return res.status(201).json({
                 success: true,
                 data: order,
@@ -86,35 +102,48 @@ export class OrderController {
                 district,
                 division,
                 search,
-                page,
-                limit,
+                page = 1,
+                limit = 10,
             } = req.query;
 
-            const filters = {
-                status: status as OrderStatus,
-                startDate: startDate
-                    ? new Date(startDate as string)
-                    : undefined,
-                endDate: endDate ? new Date(endDate as string) : undefined,
-                district: district as string,
-                division: division as string,
-                search: search as string,
-                page: page ? parseInt(page as string) : 1,
-                limit: limit ? parseInt(limit as string) : 10,
+            // Build filters
+            const filters: any = {
+                companyId: cid,
             };
 
-            const result = await this.orderService.getOrders(cid, filters);
+            if (status) filters.status = status.toString().toUpperCase();
+            if (startDate || endDate) {
+                filters.createdAt = {
+                    ...(startDate
+                        ? { $gte: new Date(startDate as string) }
+                        : {}),
+                    ...(endDate ? { $lte: new Date(endDate as string) } : {}),
+                };
+            }
+            if (district) filters["shippingAddress.district"] = district;
+            if (division) filters["shippingAddress.division"] = division;
+            if (search) filters.$text = { $search: search as string };
+
+            // Pagination settings
+            const skip =
+                (parseInt(page as string, 10) - 1) *
+                parseInt(limit as string, 10);
+            const orders = await this.orderService.getOrdersWithPagination(
+                filters,
+                skip,
+                parseInt(limit as string, 10),
+            );
+
             return res.json({
                 success: true,
-                data: result.orders,
-                pagination: result.pagination,
+                data: orders.data,
+                pagination: orders.pagination,
             });
         } catch (error) {
-            logger.error("Get orders error:", error);
+            logger.error("Error fetching orders:", error);
             return res.status(500).json({
                 success: false,
                 message: "Error fetching orders",
-                error: error instanceof Error ? error.message : "Unknown error",
             });
         }
     }

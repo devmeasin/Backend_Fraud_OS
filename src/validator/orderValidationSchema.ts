@@ -1,63 +1,136 @@
-import { checkSchema, Schema } from "express-validator";
-import { OrderStatus, PaymentMethod, OrderSource } from "../models/orderModel";
+import { Schema } from "express-validator";
+import {
+    OrderSource,
+    OrderStatus,
+    PaymentMethod,
+} from "../models/orderChannel/orderModel";
 
 export const createOrderSchema: Schema = {
-    customerPhone: {
+    companyId: {
         in: ["body"],
         isString: true,
         optional: true,
+        notEmpty: {
+            errorMessage: "Company ID is required",
+        },
+    },
+    customerPhone: {
+        in: ["body"],
+        isString: true,
         notEmpty: {
             errorMessage: "Customer phone is required",
         },
     },
-    customerId: {
+    customer: {
         in: ["body"],
-        isString: true,
-        optional: true,
+        isObject: true,
         notEmpty: {
             errorMessage: "Customer ID is required",
         },
     },
-    productId: {
+    "products.*.product": {
         in: ["body"],
         isString: true,
-        optional: true,
         notEmpty: {
             errorMessage: "Product ID is required",
         },
     },
-    quantity: {
+    "products.*.quantity": {
         in: ["body"],
         isInt: {
             options: { min: 1 },
             errorMessage: "Quantity must be at least 1",
         },
         toInt: true,
-        optional: true,
     },
-    paymentMethod: {
+    "shippingAddress.address": {
         in: ["body"],
         isString: true,
-        isIn: {
-            options: [
-                [PaymentMethod.CREDIT_CARD, PaymentMethod.CASH_ON_DELIVERY],
-            ],
-            errorMessage: "Invalid payment method",
+        notEmpty: {
+            errorMessage: "Shipping address is required",
         },
+    },
+    "shippingAddress.district": {
+        in: ["body"],
+        isString: true,
         optional: true,
+    },
+    "shippingAddress.division": {
+        in: ["body"],
+        isString: true,
+        optional: true,
+    },
+    "amounts.totalAmount": {
+        in: ["body"],
+        notEmpty: {
+            errorMessage: "Total amount is required",
+        },
+    },
+    // "payment.method": {
+    //     in: ["body"],
+    //     optional: true,
+    //     isString: true,
+    //     isIn: {
+    //         options: Object.values(PaymentMethod),
+    //         errorMessage: "Invalid payment method",
+    //     },
+    // },
+
+    "payment.due": {
+        in: ["body"],
+        optional: true,
+        isFloat: {
+            options: { min: 0 },
+            errorMessage: "Payment due must be a non-negative number",
+        },
+        toFloat: true,
     },
     source: {
         in: ["body"],
-        isString: true,
-        isIn: {
-            options: [[OrderSource.WEBSITE]],
-            errorMessage: "Invalid order source",
+        isString: {
+            errorMessage: "Order source must be a string",
         },
+        optional: true,
+        custom: {
+            options: (value) => {
+                const validSources = [
+                    "WOOCOMMERCE",
+                    "SHOPIFY",
+                    "DARAZ",
+                    "SYSTEM",
+                    "WEBSITE",
+                    "OTHER",
+                    "WHATSAPP",
+                    "MESSENGER",
+                    "PHONE_CALL",
+                    "UNKNOWN",
+                ];
+                if (!validSources.includes(value)) {
+                    throw new Error("Invalid order source");
+                }
+                return true;
+            },
+        },
+    },
+
+    additionalNotes: {
+        in: ["body"],
+        optional: true,
+        isString: true,
     },
 };
 
 export const updateOrderSchema: Schema = {
-    productId: {
+    status: {
+        in: ["body"],
+        optional: true,
+        isString: true,
+        isIn: {
+            options: Object.values(OrderStatus),
+            errorMessage: "Invalid status",
+        },
+    },
+    "products.*.product": {
         in: ["body"],
         optional: true,
         isString: true,
@@ -65,7 +138,7 @@ export const updateOrderSchema: Schema = {
             errorMessage: "Product ID cannot be empty",
         },
     },
-    quantity: {
+    "products.*.quantity": {
         in: ["body"],
         optional: true,
         isInt: {
@@ -74,20 +147,42 @@ export const updateOrderSchema: Schema = {
         },
         toInt: true,
     },
-    status: {
+    "shippingAddress.address": {
+        in: ["body"],
+        optional: true,
+        isString: true,
+    },
+    "shippingAddress.district": {
+        in: ["body"],
+        optional: true,
+        isString: true,
+    },
+    "shippingAddress.division": {
+        in: ["body"],
+        optional: true,
+        isString: true,
+    },
+    "payment.method": {
         in: ["body"],
         optional: true,
         isString: true,
         isIn: {
-            options: [
-                [
-                    OrderStatus.PENDING,
-                    OrderStatus.SHIPPED,
-                    OrderStatus.DELIVERED,
-                    OrderStatus.CANCELLED,
-                ],
-            ],
-            errorMessage: "Invalid status",
+            options: Object.values(PaymentMethod),
+            errorMessage: "Invalid payment method",
         },
+    },
+    "payment.due": {
+        in: ["body"],
+        optional: true,
+        isFloat: {
+            options: { min: 0 },
+            errorMessage: "Payment due must be a non-negative number",
+        },
+        toFloat: true,
+    },
+    additionalNotes: {
+        in: ["body"],
+        optional: true,
+        isString: true,
     },
 };

@@ -27,6 +27,7 @@ app.use(
             "https://app.ecommos.com",
             "https://ecommos.com",
             "http://localhost:5173",
+            "http://localhost:5174",
         ],
         credentials: true,
     }),

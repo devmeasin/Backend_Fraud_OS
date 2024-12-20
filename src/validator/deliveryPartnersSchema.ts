@@ -1,16 +1,6 @@
 import { Schema } from "express-validator";
 
 export const DeliveryPartnerSchema: Schema = {
-    partnerId: {
-        in: ["body"],
-        notEmpty: {
-            errorMessage: "Partner ID is required",
-        },
-        optional: true,
-        isString: {
-            errorMessage: "Partner ID must be a string",
-        },
-    },
     type: {
         in: ["body"],
         notEmpty: {
@@ -47,6 +37,7 @@ export const DeliveryPartnerSchema: Schema = {
             errorMessage: "Invalid phone number",
         },
     },
+
     charges: {
         in: ["body"],
         optional: true,

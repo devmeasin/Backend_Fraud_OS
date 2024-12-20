@@ -1,10 +1,14 @@
 import { Router } from "express";
-import { DeliveryPartnerController } from "../controllers/DeliveryPartners/DeliveryPartnersController";
-import { DeliveryPartner } from "../models/deliveryPartnerModel";
-import { DeliveryPartnerService } from "../services/DeliveryPartners/DeliveryPartnersService";
+import { DeliveryPartnerController } from "../controllers/DeliveryPartners/DeliveryPartnerController";
 import authenticate from "../middlewares/authenticate";
+import { DeliveryPartner } from "../models/deliveryChannel/deliveryPartnerModel";
+import { DeliveryPartnerService } from "../services/DeliveryPartners/DeliveryPartnersService";
 import logger from "../utils/logger";
 
+// const deliveryPartnerController = new DeliveryPartnerController(
+//     logger,
+//     new DeliveryPartnerService(DeliveryPartner, logger),
+// );
 const deliveryPartnerController = new DeliveryPartnerController(
     logger,
     new DeliveryPartnerService(DeliveryPartner, logger),

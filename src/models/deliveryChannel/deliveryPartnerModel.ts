@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
 // Interface for Charge
 interface ICharge {
@@ -9,19 +9,20 @@ interface ICharge {
 
 // Interface for Delivery Partner
 interface IDeliveryPartner extends Document {
-    partnerId: string;
-    type: "PATHAO" | "STEADFAST";
+    type: "PATHAO" | "STEADFAST" | "REDX" | "PAPERFLY" | "OTHER";
     name: string;
     contactPerson: string;
     phone: string;
     companyId: string;
     locationId?: string;
     warehouseId?: string;
+    storeId?: string;
     disabled: boolean;
     integrationConfig: {
         apiKey?: string;
         clientId?: string;
         username?: string;
+        phone?: string;
         password?: string;
         secretKey?: string;
         accessToken?: string;
@@ -50,14 +51,9 @@ const ChargeSchema = new Schema<ICharge>(
 
 const DeliveryPartnerSchema = new Schema<IDeliveryPartner>(
     {
-        partnerId: {
-            type: String,
-            required: true,
-            unique: true,
-        },
         type: {
             type: String,
-            enum: ["PATHAO", "STEADFAST"],
+            enum: ["PATHAO", "STEADFAST", "REDX", "PAPERFLY", "OTHER"],
             required: true,
         },
         name: {
@@ -80,6 +76,10 @@ const DeliveryPartnerSchema = new Schema<IDeliveryPartner>(
             type: String,
             required: false,
         },
+        storeId: {
+            type: String,
+            required: false,
+        },
         warehouseId: {
             type: String,
             required: false,
@@ -91,9 +91,10 @@ const DeliveryPartnerSchema = new Schema<IDeliveryPartner>(
         integrationConfig: {
             apiKey: { type: String },
             clientId: { type: String },
-            username: { type: String },
-            password: { type: String },
             secretKey: { type: String },
+            username: { type: String },
+            phone: { type: String },
+            password: { type: String },
             accessToken: { type: String },
         },
         charges: [ChargeSchema],
@@ -109,4 +110,4 @@ const DeliveryPartner = mongoose.model<IDeliveryPartner>(
     DeliveryPartnerSchema,
 );
 
-export { DeliveryPartner, IDeliveryPartner, ICharge };
+export { DeliveryPartner, ICharge, IDeliveryPartner };

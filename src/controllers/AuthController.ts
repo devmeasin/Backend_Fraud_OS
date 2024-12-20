@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { checkSchema, validationResult } from "express-validator";
-import createHttpError from "http-errors";
+import createHttpError, { HttpError } from "http-errors";
 import { JwtPayload } from "jsonwebtoken";
 import { Logger } from "winston";
+import { Types } from "mongoose";
 
 // import services
 import { assignFreeTrialPackage } from "../services/AssignFreeTrialPkService";
@@ -25,10 +26,12 @@ import {
 } from "../validator/authValidationSchema";
 import { genarateOTPShema } from "../validator/genarateOTP";
 import { verifyOTPShema } from "../validator/VerifyOTPShema";
+import { ICompany } from "../models/companyModel";
+import { CompanyService } from "../services/CompanyService";
 
 interface EnhancedJwtPayload {
     name: string;
-    role: "owner" | "admin" | "employee"; // lowercase roles
+    role: string;
     cid: string; // Company ID
     plan: string;
     sub: string;
@@ -41,6 +44,7 @@ export class AuthController {
         private tokenService: TokenService,
         private credentialService: CredentialService,
         private otpService: OTPService,
+        private companyService: CompanyService,
     ) {}
 
     private generateAuthTokens(user: any, activeCompanyId?: string) {
@@ -68,6 +72,7 @@ export class AuthController {
         accessToken: string,
         refreshToken: string,
     ) {
+        await Promise.resolve();
         res.cookie("accessToken", accessToken, {
             domain: Config.MAIN_DOMAIN,
             maxAge: 1000 * 60 * 60, // 1h
@@ -122,6 +127,15 @@ export class AuthController {
                 password,
             });
 
+            const companyData = await this.companyService.createCompany(
+                user._id,
+                {
+                    name: companyName,
+                    website: companyWebsite,
+                    owner: new Types.ObjectId(user._id),
+                },
+            );
+
             this.logger.info("User has been registered", { id: user._id });
 
             if (!user.isPhoneVerified) {
@@ -130,16 +144,26 @@ export class AuthController {
                 await this.otpService.sendOTP(phone as string, otp);
             }
 
-            const payload: JwtPayload = {
-                sub: String(user._id),
-                role: user.role,
+            const payload: EnhancedJwtPayload = {
+                name: user.fullName,
+                role:
+                    user.role === "OWNER"
+                        ? "owner"
+                        : user.role === "ADMIN"
+                        ? "admin"
+                        : "employee", // Converting OWNER -> owner
+                cid: companyData._id as string,
+                plan: "basic",
+                sub: user._id,
             };
 
             const accessToken = this.tokenService.generateAccessToken(payload);
 
             // Persist refresh token
-            const newRefreshToken =
-                await this.tokenService.persistRefreshToken(user);
+            const newRefreshToken = await this.tokenService.persistRefreshToken(
+                user,
+                companyData._id as string,
+            );
 
             const refreshToken = this.tokenService.generateRefreshToken({
                 id: String(newRefreshToken._id),
@@ -172,7 +196,12 @@ export class AuthController {
 
     async login(req: Request, res: Response, next: NextFunction) {
         try {
-            const { phone, password, companyId } = req.body;
+            const {
+                phone,
+                password,
+                companyId,
+            }: { phone: string; password: string; companyId: string } =
+                req.body;
 
             const user = await this.userService.findByPhone(phone);
 
@@ -189,33 +218,36 @@ export class AuthController {
                 throw createHttpError(400, "Phone or password is incorrect!");
             }
 
+            // Check if user has a company
+            const activeCompany = companyId
+                ? user.companies.find((c) => String(c.companyId) === companyId)
+                : user.companies[0];
+
             // Generate tokens with simplified payload
-            const accessToken = this.generateAuthTokens(user, companyId);
+            const accessToken = this.generateAuthTokens(
+                user,
+                activeCompany?.companyId.toString(),
+            );
 
             // Persist refresh token
-            const newRefreshToken =
-                await this.tokenService.persistRefreshToken(user);
+            const newRefreshToken = await this.tokenService.persistRefreshToken(
+                user,
+                activeCompany?.companyId?.toString() as string,
+            );
+
             const refreshToken = this.tokenService.generateRefreshToken({
+                id: String(newRefreshToken._id),
                 sub: user._id.toString(),
+                cid: activeCompany?.companyId?.toString() as string,
             });
 
             // Set cookies
             await this.setAuthCookies(res, accessToken, refreshToken);
 
-            const activeCompany = companyId
-                ? user.companies.find(
-                      (c) => c.companyId.toString() === companyId,
-                  )
-                : user.companies[0];
-
             // Return the same structure as the token payload
             res.json({
                 name: user.fullName,
-                role: user.role.toLowerCase(),
-                cid: activeCompany?.companyId.toString() || "",
                 plan: user?.currentPackage || "basic",
-                sub: user._id.toString(),
-                accessToken,
             });
         } catch (err) {
             return next(err);
@@ -250,21 +282,31 @@ export class AuthController {
                 throw createHttpError(404, "User not found");
             }
 
-            const accessToken = this.generateAuthTokens(
-                user,
-                (req.auth as unknown as EnhancedJwtPayload).cid,
+            // Ensure cid exists in auth payload
+            if (!req.auth.cid) {
+                throw createHttpError(400, "Company ID is required");
+            }
+
+            const accessToken = this.generateAuthTokens(user, req.auth.cid);
+
+            // Delete old refresh token before creating new one
+            await this.tokenService.deleteRefreshToken(
+                req.auth.sub,
+                req.auth.cid,
             );
 
-            const newRefreshToken =
-                await this.tokenService.persistRefreshToken(user);
+            const newRefreshToken = await this.tokenService.persistRefreshToken(
+                user,
+                req.auth.cid,
+            );
+
             const refreshToken = this.tokenService.generateRefreshToken({
+                id: String(newRefreshToken._id),
                 sub: user._id.toString(),
+                cid: req.auth.cid,
             });
 
             await this.setAuthCookies(res, accessToken, refreshToken);
-
-            // Delete old refresh token
-            await this.tokenService.deleteRefreshToken(req.auth.sub);
 
             res.json({
                 name: user.fullName,
@@ -272,7 +314,6 @@ export class AuthController {
                 cid: req.auth.cid,
                 plan: user?.currentPackage || "basic",
                 sub: user._id.toString(),
-                accessToken,
             });
         } catch (err) {
             return next(err);
@@ -281,7 +322,10 @@ export class AuthController {
 
     async logout(req: AuthRequest, res: Response, next: NextFunction) {
         try {
-            await this.tokenService.deleteRefreshToken(req.auth.sub);
+            await this.tokenService.deleteRefreshToken(
+                req.auth.sub,
+                req.auth.cid,
+            );
             this.logger.info("Refresh token has been deleted", {
                 id: req.auth.id,
             });
@@ -352,24 +396,22 @@ export class AuthController {
                 throw createHttpError(400, "Invalid or expired OTP");
             }
 
-            if (isOtpValid) {
-                const merchantInfoData = await processUserRegistration(user);
-                await this.userService.updatePathaoMerchantInfo(
-                    user._id,
-                    merchantInfoData,
-                );
-                await assignFreeTrialPackage(user._id);
-            }
+            // Process additional steps after successful verification
+            const merchantInfoData = await processUserRegistration(user);
+            await this.userService.updatePathaoMerchantInfo(
+                user._id,
+                merchantInfoData,
+            );
+            await assignFreeTrialPackage(user._id);
 
-            this.logger.info("OTP verified for password reset", { phone });
-
+            this.logger.info("OTP verification completed", { phone });
             res.status(200).json({ message: "OTP verified", userId: user._id });
         } catch (err) {
             return next(err);
         }
     }
 
-    async genarateOTP(req: Request, res: Response, next: NextFunction) {
+    async generateOTP(req: Request, res: Response, next: NextFunction) {
         await checkSchema(genarateOTPShema).run(req);
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -384,25 +426,25 @@ export class AuthController {
                 throw createHttpError(404, "User not found!");
             }
 
-            if (!user.isPhoneVerified) {
-                const otp = await this.otpService.generateOTP(user);
-                // await this.otpService.sendOTP(phone, otp);
-                await this.otpService.sendOTP(phone, otp);
-                this.logger.info("OTP sent you phone number", { phone });
-                res.status(200).json({
-                    message: "Otp sent to your phone number",
+            if (user.isPhoneVerified) {
+                return res.status(200).json({
+                    message: "Phone number already verified",
                     userId: user._id,
                 });
             }
 
-            this.logger.info("Not generate otp you are verified phone number", {
-                phone,
-            });
+            const otp = await this.otpService.generateOTP(user);
+            await this.otpService.sendOTP(phone, otp);
+
+            this.logger.info("OTP generation successful", { phone });
             res.status(200).json({
-                message: "Already verified your phone number",
+                message: "OTP sent to your phone number",
                 userId: user._id,
             });
         } catch (err) {
+            if (err instanceof HttpError && err.status === 429) {
+                return res.status(429).json({ message: err.message });
+            }
             return next(err);
         }
     }

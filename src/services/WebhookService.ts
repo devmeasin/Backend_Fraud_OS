@@ -1,4 +1,4 @@
-import { Order, OrderSource } from "../models/orderModel";
+import { Order, OrderSource } from "../models/orderChannel/orderModel";
 
 export class WebhookService {
     async handleWooCommerceWebhook(payload: any) {

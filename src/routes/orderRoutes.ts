@@ -10,7 +10,7 @@ const router = express.Router();
 const orderController = new OrderController(orderService);
 
 // Create order
-router.post("/", authenticate, (req: Request, res: Response) =>
+router.post("/create", authenticate, (req: Request, res: Response) =>
     orderController.createOrder(req as AuthRequest, res),
 );
 

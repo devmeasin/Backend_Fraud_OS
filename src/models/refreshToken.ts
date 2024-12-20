@@ -12,6 +12,7 @@ const RefreshTokenSchema: Schema = new Schema(
     {
         expiredAt: { type: Date, required: true },
         user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        cid: { type: String, required: true },
     },
     {
         timestamps: true, // Automatically add createdAt and updatedAt fields

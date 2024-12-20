@@ -18,6 +18,7 @@ import valiadateRefreshToken from "../middlewares/valiadateRefreshToken";
 // Type imports
 import { AuthRequest } from "../types";
 import isAdmin from "../middlewares/isAdmin";
+import { CompanyService } from "../services/CompanyService";
 
 const router = express.Router();
 
@@ -25,12 +26,14 @@ const userService = new UserService();
 const otpService = new OTPService(logger);
 const tokenService = new TokenService();
 const credentialService = new CredentialService(logger);
+const companyService = new CompanyService();
 const authController = new AuthController(
     userService,
     logger,
     tokenService,
     credentialService,
     otpService,
+    companyService,
 );
 // const otpController = new OTPController(otpService, userService, logger);
 
@@ -84,7 +87,7 @@ router.post(
     "/generate-otp",
     authenticate,
     (req: Request, res: Response, next: NextFunction) =>
-        authController.genarateOTP(req as AuthRequest, res, next),
+        authController.generateOTP(req as AuthRequest, res, next),
 );
 
 // router.post(
