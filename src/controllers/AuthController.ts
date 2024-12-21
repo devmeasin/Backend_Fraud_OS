@@ -329,16 +329,21 @@ export class AuthController {
             const {
                 phone,
                 password,
-                companyId,
-            }: { phone: string; password: string; companyId: string } =
-                req.body;
+                companyId = "",
+            }: {
+                phone: string;
+                password: string;
+                companyId: string;
+            } = req.body;
 
+            // Find user by phone
             const user = await this.userService.findByPhone(phone);
 
             if (!user) {
                 throw createHttpError(400, "Phone or password is incorrect!");
             }
 
+            // Verify password
             const isMatchPassword =
                 await this.credentialService.comparePassword(
                     password,
@@ -348,31 +353,33 @@ export class AuthController {
                 throw createHttpError(400, "Phone or password is incorrect!");
             }
 
-            // Check if user has a company
-            // if (!user.companies) {
-            //     throw createHttpError(400, "User has no companies");
+            // Skip companyId validation if user has no companies
+            let activeCompany: string | undefined = " ";
+            if (user.companies && user.companies.length > 0) {
+                activeCompany = companyId
+                    ? user.companies
+                          .find((c) => String(c.companyId) === companyId)
+                          ?.companyId.toString()
+                    : user.companies[0].companyId.toString();
+            }
+
+            // if (activeCompany === undefined) {
+            //     throw createHttpError(400, "Invalid companyId");
             // }
 
-            const activeCompany = companyId
-                ? user.companies?.find((c) => String(c.companyId) === companyId)
-                : user.companies?.[0].companyId;
-
-            // Generate tokens with simplified payload
-            const accessToken = this.generateAuthTokens(
-                user,
-                activeCompany?.toString(),
-            );
+            // Generate tokens
+            const accessToken = this.generateAuthTokens(user, activeCompany);
 
             // Persist refresh token
             const newRefreshToken = await this.tokenService.persistRefreshToken(
                 user,
-                activeCompany?.toString() as string,
+                activeCompany?.toString() || "",
             );
 
             const refreshToken = this.tokenService.generateRefreshToken({
                 id: String(newRefreshToken._id),
                 sub: user._id.toString(),
-                cid: activeCompany?.toString() as string,
+                cid: activeCompany?.toString() || "",
             });
 
             // Set cookies
@@ -385,6 +392,44 @@ export class AuthController {
             });
         } catch (err) {
             return next(err);
+        }
+    }
+
+    async switchCompany(req: AuthRequest, res: Response, next: NextFunction) {
+        try {
+            const { companyId }: { companyId: string } = req.body;
+            const user = await this.userService.findById(req.auth.sub);
+            if (!user) {
+                throw createHttpError(404, "User not found");
+            }
+            // Validate companyId format
+            if (!mongoose.isValidObjectId(companyId)) {
+                throw createHttpError(400, "Invalid companyId format");
+            }
+            const company = await this.companyService.findCompanyById_OwnerId(
+                companyId.toString(),
+                user._id.toString(),
+            );
+            if (!company) {
+                throw createHttpError(404, "Company not found");
+            }
+            const accessToken = this.generateAuthTokens(
+                user,
+                company._id.toString(),
+            );
+            const newRefreshToken = await this.tokenService.persistRefreshToken(
+                user,
+                company._id.toString(),
+            );
+            const refreshToken = this.tokenService.generateRefreshToken({
+                id: String(newRefreshToken._id),
+                sub: user._id.toString(),
+                cid: company._id.toString(),
+            });
+            await this.setAuthCookies(res, accessToken, refreshToken);
+            res.json({ message: "Company switched successfully" });
+        } catch (err) {
+            next(err);
         }
     }
 

@@ -13,8 +13,10 @@ export const seedPackages = async () => {
         const freeTrialPackage = new Package({
             name: "FREE TRIAL",
             price: 0,
-            requestLimit: 100,
+            requestLimit: 200,
             validityDays: 7,
+            duration: "7 days", // Add a value for duration
+            priceText: "Free", // Add a value for priceText
         });
 
         await freeTrialPackage.save();

@@ -45,6 +45,12 @@ router.post("/login", (req: Request, res: Response, next: NextFunction) =>
     authController.login(req, res, next),
 );
 
+router.post(
+    "/switch-company",
+    authenticate,
+    (req: Request, res: Response, next: NextFunction) =>
+        authController.switchCompany(req as AuthRequest, res, next),
+);
 router.get("/self", authenticate, (req: Request, res: Response) =>
     authController.self(req as AuthRequest, res),
 );

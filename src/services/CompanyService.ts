@@ -75,6 +75,21 @@ export class CompanyService {
         }
     }
 
+    findCompanyById_OwnerId(
+        id: string,
+        ownerId: string,
+    ): Promise<ICompany | null> {
+        try {
+            const company = Company.findOne({ _id: id, owner: ownerId });
+            if (!company) {
+                throw createHttpError(404, "Company not found");
+            }
+            return company;
+        } catch (error) {
+            throw createHttpError(500, "Failed to find company");
+        }
+    }
+
     /**
      * Add a user to an existing company
      */
@@ -134,5 +149,38 @@ export class CompanyService {
         }
 
         return [];
+    }
+
+    async removeUserFromCompany(
+        companyId: string,
+        userId: string,
+        session?: mongoose.ClientSession,
+    ): Promise<ICompany> {
+        const company = await Company.findById(companyId).session(
+            session ?? null,
+        );
+        if (!company) {
+            throw createHttpError(404, "Company not found");
+        }
+        // Remove the user from the company
+        company.users = company.users.filter(
+            (u) => u.userId.toString() !== userId,
+        );
+        await company.save({ session });
+
+        // Remove the company from the user's list
+        await User.findByIdAndUpdate(
+            userId,
+            {
+                $pull: {
+                    companies: {
+                        companyId: companyId,
+                    },
+                },
+            },
+            { session },
+        );
+
+        return company;
     }
 }
