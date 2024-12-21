@@ -8,7 +8,7 @@ const generateApiSecret = (): string => {
 };
 
 // Function to create or update a user with a new API secret
-const updateUserApiSecret = async (userId: string) => {
+export const updateUserApiSecret = async (userId: string) => {
     try {
         const apiSecret = generateApiSecret(); // Generate a new API secret
         const user = await User.findById(userId);
@@ -25,7 +25,7 @@ const updateUserApiSecret = async (userId: string) => {
     }
 };
 
-const getUserApiSecret = async (userId: string) => {
+export const getUserApiSecret = async (userId: string) => {
     try {
         const user = await User.findById(userId);
 
@@ -39,7 +39,10 @@ const getUserApiSecret = async (userId: string) => {
 };
 
 // Function to enable or disable the API secret
-const setApiSecretStatus = async (userId: string, apiSecretStatus: boolean) => {
+export const setApiSecretStatus = async (
+    userId: string,
+    apiSecretStatus: boolean,
+) => {
     try {
         const user = await User.findById(userId);
 
@@ -53,5 +56,3 @@ const setApiSecretStatus = async (userId: string, apiSecretStatus: boolean) => {
         throw createHttpError(500, "Failed to update API secret status");
     }
 };
-
-export { getUserApiSecret, updateUserApiSecret, setApiSecretStatus };
