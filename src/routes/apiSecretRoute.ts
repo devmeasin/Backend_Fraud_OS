@@ -1,17 +1,19 @@
 import express, { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import authenticate from "../middlewares/authenticate";
-import {
-    getUserApiSecret,
-    setApiSecretStatus,
-    updateUserApiSecret,
-} from "../services/ApiSecretService";
+
 import { AuthRequest } from "../types";
 import validateApiSecret from "../middlewares/validateApiSecret";
 import {
     addDomainToUser,
     removeDomainFromUser,
 } from "../services/DomainMGService";
+
+import {
+    getUserApiSecret,
+    setApiSecretStatus,
+    updateUserApiSecret,
+} from "../services/API_SecretService";
 
 const router = express.Router();
 

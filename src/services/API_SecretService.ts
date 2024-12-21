@@ -3,7 +3,7 @@ import { User } from "../models/userModel"; // Adjust the path to your User mode
 import createHttpError from "http-errors";
 
 // Function to generate a random API secret
-const generateApiSecret = (): string => {
+export const generateApiSecret = (): string => {
     return crypto.randomBytes(32).toString("hex"); // Generates a 64-character hex string
 };
 
