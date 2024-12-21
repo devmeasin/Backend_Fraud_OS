@@ -2,22 +2,25 @@
 ARG NODE_VERSION=21.7.1
 
 # Build Stage
-FROM node:${NODE_VERSION}-alpine as builder
+FROM node:${NODE_VERSION}-alpine AS builder
 
 WORKDIR /home/node/app
+
+# Install necessary build tools for native dependencies
+RUN apk add --no-cache python3 make g++
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Update npm to the latest version and install dependencies
-RUN npm install -g npm@latest --unsafe-perm && npm ci
+# Use a compatible npm version and install dependencies
+RUN npm install -g npm@10.5.0 --unsafe-perm && npm ci
 
 # Copy all source files and build the application
 COPY . .
 RUN npm run build
 
 # Final Stage
-FROM node:${NODE_VERSION}-alpine as runner
+FROM node:${NODE_VERSION}-alpine AS runner
 
 WORKDIR /home/node/app
 
@@ -37,7 +40,7 @@ COPY --from=builder /home/node/app/.env.production /home/node/.env.production
 RUN mkdir -p /home/node/app/logs && chown -R node:node /home/node/app/logs
 
 # Install PM2 globally
-RUN npm install -g pm2@latest
+RUN npm install -g pm2@latest --unsafe-perm
 
 USER node
 
