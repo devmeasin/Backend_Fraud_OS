@@ -11,37 +11,33 @@ export interface IMerchantInfo extends Document {
 }
 
 export interface IUser extends Document {
-    _id: string;
+    _id: mongoose.Types.ObjectId; // Ensure `_id` uses mongoose's ObjectId type
     fullName: string;
-    companyName?: string;
-    companyWebsite?: string;
     phone: string;
     email?: string;
     password: string;
-    role: "OWNER" | "ADMIN" | "EMPLOYEE";
-    status: string;
+    role: "owner" | "admin" | "employee";
+    status: "active" | "blocked" | "pending"; // Match enum in schema
     isVerified: boolean;
     isPhoneVerified: boolean;
     isEmailVerified: boolean;
-    companies: {
-        companyId: Schema.Types.ObjectId;
-        role: "OWNER" | "ADMIN" | "EMPLOYEE";
+    companies?: {
+        companyId: mongoose.Types.ObjectId; // Consistent ObjectId type
+        role: "owner" | "admin" | "employee" | "manager";
     }[];
     pathaoMerchantInfo?: IMerchantInfo;
-    currentPackage?: Schema.Types.ObjectId;
+    currentPackage?: mongoose.Types.ObjectId;
     remainingRequests: number;
     apiSecret?: string;
-    apiSecretStatus?: boolean; // New field to enable/disable API secret
-    allowedDomains: string[]; // Array to store allowed domains/subdomains
+    apiSecretStatus?: boolean;
+    allowedDomains: string[];
 }
 
 const userSchema = new Schema<IUser>(
     {
         fullName: { type: String, required: true },
-        companyName: { type: String },
-        companyWebsite: { type: String },
         phone: { type: String, required: true, unique: true },
-        email: { type: String, unique: true },
+        email: { type: String, unique: true, sparse: true }, // `sparse` allows multiple documents with no email
         password: { type: String, required: true },
         status: {
             type: String,
@@ -51,52 +47,41 @@ const userSchema = new Schema<IUser>(
         isEmailVerified: { type: Boolean, default: false },
         isPhoneVerified: { type: Boolean, default: false },
         isVerified: { type: Boolean, default: false },
-        companies: [
-            {
-                companyId: {
-                    type: Schema.Types.ObjectId,
-                    ref: "Company",
-                    required: true,
+        companies: {
+            type: [
+                {
+                    companyId: { type: Schema.Types.ObjectId, ref: "Company" },
+                    role: {
+                        type: String,
+                        enum: ["owner", "admin", "manager", "employee"],
+                        default: "owner",
+                    },
                 },
-                role: {
-                    type: String,
-                    enum: ["OWNER", "ADMIN", "EMPLOYEE"],
-                    required: true,
-                },
-            },
-        ],
+            ],
+            default: [],
+        },
         role: {
             type: String,
-            enum: ["OWNER", "ADMIN", "EMPLOYEE"],
-            default: "OWNER",
-            immutable: true, // Prevent changes after creation
+            enum: ["owner", "admin", "employee"],
+            default: "owner",
+            immutable: true, // Prevent role changes after creation
         },
         pathaoMerchantInfo: {
             type: {
-                owner_name: String,
-                owner_number: String,
-                owner_email: String,
-                name: String,
-                merchant_id: Number,
-                password: String,
-                country_id: String,
-            },
-            default: {
-                isHavepathaoUser: false,
-                owner_name: "",
-                owner_number: "",
-                owner_email: "",
-                name: "",
-                merchant_id: 0,
-                password: "",
-                country_id: "",
+                owner_name: { type: String, default: "" },
+                owner_number: { type: String, default: "" },
+                owner_email: { type: String, default: "" },
+                name: { type: String, default: "" },
+                merchant_id: { type: Number, default: 0 },
+                password: { type: String, default: "" },
+                country_id: { type: String, default: "" },
             },
         },
-        apiSecret: { type: String },
-        apiSecretStatus: { type: Boolean, default: true }, // Default to enabled
-        allowedDomains: { type: [String], default: [] }, // Store allowed domains/subdomains
+        apiSecret: { type: String, default: "" },
+        apiSecretStatus: { type: Boolean, default: true },
+        allowedDomains: { type: [String], default: [] },
     },
-    { timestamps: true },
+    { timestamps: true }, // Automatically adds `createdAt` and `updatedAt`
 );
 
 export const User = mongoose.model<IUser>("User", userSchema);

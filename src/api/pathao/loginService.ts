@@ -29,19 +29,22 @@ export async function loginToPathao(userId: string) {
 
         // Store new token in the database
         await pathaoToken.storePathaoTokenfromDB(
-            user._id,
+            user._id.toString(),
             response.data as LoginResponse,
         );
         logger.info(
-            `Logged in successfully for Pathao user ${user._id} ${user.pathaoMerchantInfo?.owner_email}`,
+            `Logged in successfully for Pathao user ${user._id.toString()} ${user
+                .pathaoMerchantInfo?.owner_email}`,
         );
         return response.data as LoginResponse;
     } catch (error) {
         logger.info(
-            `Login failed for Pathao user ${user._id} ${user.pathaoMerchantInfo?.owner_email}`,
+            `Login failed for Pathao user ${user._id.toString()} ${user
+                .pathaoMerchantInfo?.owner_email}`,
         );
         throw new Error(
-            `Login failed for Pathao user ${user._id} ${user.pathaoMerchantInfo?.owner_email}`,
+            `Login failed for Pathao user ${user._id.toString()} ${user
+                .pathaoMerchantInfo?.owner_email}`,
         );
     }
 }

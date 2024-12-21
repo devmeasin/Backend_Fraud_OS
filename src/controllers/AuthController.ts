@@ -1,9 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { checkSchema, validationResult } from "express-validator";
 import createHttpError, { HttpError } from "http-errors";
-import { JwtPayload } from "jsonwebtoken";
+import mongoose from "mongoose";
 import { Logger } from "winston";
-import { Types } from "mongoose";
 
 // import services
 import { assignFreeTrialPackage } from "../services/AssignFreeTrialPkService";
@@ -16,18 +15,16 @@ import { processUserRegistration } from "../api/pathao/registerService";
 
 // import types
 import { Config } from "../config";
+import { CompanyService } from "../services/CompanyService";
 import { AuthRequest, UserData_delPassword } from "../types";
 import {
     forgetPasswordSchema,
-    loginSchema,
     registerSchema,
     resetPasswordByAdminSchema,
     resetPasswordSchema,
 } from "../validator/authValidationSchema";
 import { genarateOTPShema } from "../validator/genarateOTP";
 import { verifyOTPShema } from "../validator/VerifyOTPShema";
-import { ICompany } from "../models/companyModel";
-import { CompanyService } from "../services/CompanyService";
 
 interface EnhancedJwtPayload {
     name: string;
@@ -92,6 +89,119 @@ export class AuthController {
         });
     }
 
+    // async register(req: Request, res: Response, next: NextFunction) {
+    //     await checkSchema(registerSchema).run(req);
+    //     const errors = validationResult(req);
+    //     if (!errors.isEmpty()) {
+    //         return res.status(400).json({ errors: errors.array() });
+    //     }
+
+    //     const {
+    //         fullName,
+    //         companyName,
+    //         companyWebsite,
+    //         email,
+    //         phone,
+    //         password,
+    //     } = req.body;
+
+    //     this.logger.debug("New request to register a user", {
+    //         fullName,
+    //         companyName,
+    //         companyWebsite,
+    //         email,
+    //         phone,
+    //         password: "******", // Mask sensitive data
+    //     });
+
+    //     const session = await mongoose.startSession(); // Start MongoDB transaction
+    //     session.startTransaction();
+
+    //     try {
+    //         // Create user
+    //         const user = await this.userService.create(
+    //             { fullName, email, phone, password },
+    //             session
+    //         );
+
+    //         // Create company data
+    //         const companyData = await this.companyService.createCompany(
+    //             user._id.toString(),
+    //             {
+    //                 name: companyName,
+    //                 website: companyWebsite,
+    //                 owner: new mongoose.Types.ObjectId(user._id), // No need to use `new mongoose.Types.ObjectId` since `user._id` is already an ObjectId
+    //             },
+    //             session
+    //         ) as ICompany & { _id: mongoose.Types.ObjectId };
+
+    //         // Link company to user
+    //         user.companies?.push({
+    //             companyId: companyData._id,
+    //             role: "OWNER",
+    //         });
+    //         await user.save({ session }); // Save the updated user in the transaction
+
+    //         this.logger.info("User has been registered", { id: user._id });
+
+    //         // Generate and send OTP if phone is not verified
+    //         if (!user.isPhoneVerified) {
+    //             const otp = await this.otpService.generateOTP(user);
+    //             await this.otpService.sendOTP(phone as string, otp);
+    //         }
+
+    //         // Generate tokens
+    //         const payload: EnhancedJwtPayload = {
+    //             name: user.fullName,
+    //             role: user.role === "OWNER" ? "owner" : "employee",
+    //             cid: companyData._id.toString(),
+    //             plan: "basic",
+    //             sub: user._id.toString(),
+    //         };
+
+    //         const accessToken = this.tokenService.generateAccessToken(payload);
+    //         const newRefreshToken = await this.tokenService.persistRefreshToken(
+    //             user,
+    //             companyData._id.toString()
+    //         );
+    //         const refreshToken = this.tokenService.generateRefreshToken({
+    //             id: String(newRefreshToken._id),
+    //             ...payload,
+    //         });
+
+    //         // Set cookies
+    //         res.cookie("accessToken", accessToken, {
+    //             domain: Config.MAIN_DOMAIN,
+    //             maxAge: 1000 * 60 * 60,
+    //             sameSite: "lax",
+    //             path: "/",
+    //             httpOnly: true,
+    //             secure: true,
+    //         });
+
+    //         res.cookie("refreshToken", refreshToken, {
+    //             domain: Config.MAIN_DOMAIN,
+    //             maxAge: 1000 * 60 * 60 * 24 * 365,
+    //             sameSite: "lax",
+    //             path: "/",
+    //             httpOnly: true,
+    //             secure: true,
+    //         });
+
+    //         // Commit the transaction
+    //         await session.commitTransaction();
+    //         await session.endSession();
+
+    //         // Send response
+    //         res.status(201).json({ id: user._id, role: user.role });
+    //     } catch (err) {
+    //         await session.abortTransaction(); // Rollback changes
+    //         await session.endSession();
+    //         this.logger.error("Error during user registration", { error: err });
+    //         return next(err);
+    //     }
+    // }
+
     async register(req: Request, res: Response, next: NextFunction) {
         await checkSchema(registerSchema).run(req);
         const errors = validationResult(req);
@@ -114,82 +224,102 @@ export class AuthController {
             companyWebsite,
             email,
             phone,
-            password: "******",
+            password: "******", // Mask sensitive data
         });
 
-        try {
-            const user = await this.userService.create({
-                fullName,
-                companyName,
-                companyWebsite,
-                email,
-                phone,
-                password,
-            });
+        const session = await mongoose.startSession(); // Start MongoDB transaction
+        session.startTransaction();
 
+        try {
+            // Create user
+            const user = await this.userService.create(
+                { fullName, email, phone, password },
+                session,
+            );
+
+            // Create company data
             const companyData = await this.companyService.createCompany(
-                user._id,
+                user._id.toString(),
                 {
                     name: companyName,
                     website: companyWebsite,
-                    owner: new Types.ObjectId(user._id),
+                    owner: user._id, // user._id is already an ObjectId
+                    users: [{ userId: user._id, role: "owner" }],
                 },
+                session,
             );
+
+            // Link company to user
+            user.companies?.push({
+                companyId: companyData._id,
+                role: "owner",
+            });
+            await user.save({ session }); // Save the updated user in the transaction
 
             this.logger.info("User has been registered", { id: user._id });
 
+            // Generate and send OTP if phone is not verified
             if (!user.isPhoneVerified) {
                 const otp = await this.otpService.generateOTP(user);
-                // await this.otpService.sendOTP(phone, otp);
                 await this.otpService.sendOTP(phone as string, otp);
             }
 
+            // Generate tokens
             const payload: EnhancedJwtPayload = {
                 name: user.fullName,
-                role:
-                    user.role === "OWNER"
-                        ? "owner"
-                        : user.role === "ADMIN"
-                        ? "admin"
-                        : "employee", // Converting OWNER -> owner
-                cid: companyData._id as string,
+                role: user.role === "owner" ? "owner" : "employee",
+                cid: companyData._id.toString(),
                 plan: "basic",
-                sub: user._id,
+                sub: user._id.toString(),
             };
 
             const accessToken = this.tokenService.generateAccessToken(payload);
-
-            // Persist refresh token
             const newRefreshToken = await this.tokenService.persistRefreshToken(
                 user,
-                companyData._id as string,
+                companyData._id.toString(),
             );
-
             const refreshToken = this.tokenService.generateRefreshToken({
                 id: String(newRefreshToken._id),
                 ...payload,
             });
 
+            // Set cookies
             res.cookie("accessToken", accessToken, {
                 domain: Config.MAIN_DOMAIN,
-                maxAge: 1000 * 60 * 60, // 1h
+                maxAge: 1000 * 60 * 60,
                 sameSite: "lax",
-                path: "/", // Ensure it's available across all subdomains
+                path: "/",
                 httpOnly: true,
-                secure: true, // Use secure if you're running over HTTPS
+                secure: true,
             });
 
             res.cookie("refreshToken", refreshToken, {
                 domain: Config.MAIN_DOMAIN,
-                maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
+                maxAge: 1000 * 60 * 60 * 24 * 365,
                 sameSite: "lax",
-                path: "/", // Ensure it's available across all subdomains
+                path: "/",
                 httpOnly: true,
-                secure: true, // Use secure if you're running over HTTPS
+                secure: true,
             });
 
+            // Commit the transaction
+            await session.commitTransaction();
+            await session.endSession();
+
+            // Send response
             res.status(201).json({ id: user._id, role: user.role });
         } catch (err) {
+            await session.abortTransaction(); // Rollback changes
+            await session.endSession();
+            this.logger.error("Error during user registration", { error: err });
+
+            // Return specific error response if available
+            if (err instanceof HttpError && err.code === 11000) {
+                return res
+                    .status(400)
+                    .json({ error: "Duplicate phone or email" });
+            }
+
             return next(err);
         }
     }
@@ -219,26 +349,30 @@ export class AuthController {
             }
 
             // Check if user has a company
+            // if (!user.companies) {
+            //     throw createHttpError(400, "User has no companies");
+            // }
+
             const activeCompany = companyId
-                ? user.companies.find((c) => String(c.companyId) === companyId)
-                : user.companies[0];
+                ? user.companies?.find((c) => String(c.companyId) === companyId)
+                : user.companies?.[0].companyId;
 
             // Generate tokens with simplified payload
             const accessToken = this.generateAuthTokens(
                 user,
-                activeCompany?.companyId.toString(),
+                activeCompany?.toString(),
             );
 
             // Persist refresh token
             const newRefreshToken = await this.tokenService.persistRefreshToken(
                 user,
-                activeCompany?.companyId?.toString() as string,
+                activeCompany?.toString() as string,
             );
 
             const refreshToken = this.tokenService.generateRefreshToken({
                 id: String(newRefreshToken._id),
                 sub: user._id.toString(),
-                cid: activeCompany?.companyId?.toString() as string,
+                cid: activeCompany?.toString() as string,
             });
 
             // Set cookies
@@ -399,10 +533,10 @@ export class AuthController {
             // Process additional steps after successful verification
             const merchantInfoData = await processUserRegistration(user);
             await this.userService.updatePathaoMerchantInfo(
-                user._id,
+                user._id.toString(),
                 merchantInfoData,
             );
-            await assignFreeTrialPackage(user._id);
+            await assignFreeTrialPackage(user._id.toString());
 
             this.logger.info("OTP verification completed", { phone });
             res.status(200).json({ message: "OTP verified", userId: user._id });
@@ -545,7 +679,7 @@ export class AuthController {
 
             // Update Pathao Merchant Info
             const updatedUser = await this.userService.updatePathaoMerchantInfo(
-                user._id,
+                user._id.toString(),
                 merchantInfoData,
             );
 

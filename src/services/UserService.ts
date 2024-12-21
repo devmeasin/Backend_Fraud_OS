@@ -4,38 +4,55 @@ import { Roles } from "../constants";
 import { IMerchantInfo, IUser, User } from "../models/userModel";
 import { UserData } from "../types";
 import logger from "../utils/logger";
+import mongoose from "mongoose";
 
 export class UserService {
-    async create({
-        fullName,
-        companyName,
-        companyWebsite,
-        email,
-        phone,
-        password,
-    }: UserData): Promise<IUser> {
-        const existingUserByPhone = await User.findOne({ phone });
-        const existingUserByEmail = await User.findOne({ email });
+    async create(
+        { fullName, email, phone, password }: UserData,
+        session?: mongoose.ClientSession, // Optional session for transactions
+    ): Promise<IUser> {
+        // Check for existing users
+        const existingUser = await User.findOne({
+            $or: [{ phone }, { email }],
+        }).session(session ?? null);
+        if (existingUser) {
+            throw createHttpError(400, "Phone or email already registered!");
+        }
 
-        if (existingUserByPhone || existingUserByEmail) {
-            throw createHttpError(400, "Phone already registered!");
+        // Hash password securely
+        if (!password) {
+            throw createHttpError(
+                400,
+                "Password is required and cannot be empty",
+            );
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
         try {
-            const newUser = new User({
+            const user = new User({
                 fullName,
-                companyName,
-                companyWebsite,
                 email,
                 phone,
                 password: hashedPassword,
-                role: Roles.CUSTOMER,
+                role: Roles.OWNER,
+                companies: [],
             });
 
-            return await newUser.save();
-        } catch (err) {
+            const validationError = user.validateSync();
+            if (validationError) {
+                throw createHttpError(
+                    400,
+                    `Validation error: ${validationError.message}`,
+                );
+            }
+
+            return await user.save({ session });
+        } catch (err: any) {
+            logger.error("Error during user registration", { error: err });
+
+            // Handle specific error cases
+
             throw createHttpError(
                 500,
                 "Failed to store the data in the database",

@@ -1,7 +1,9 @@
 export const Roles = {
     CUSTOMER: "customer",
+    OWNER: "owner",
     MANAGER: "manager",
     ADMIN: "admin",
+    EMPLOYEE: "employee",
 } as const;
 
 export const CourierURI = {

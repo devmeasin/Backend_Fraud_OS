@@ -3,8 +3,6 @@ import { IMerchantInfo } from "../models/userModel";
 
 export interface UserData {
     fullName: string;
-    companyName: string;
-    companyWebsite: string;
     email: string;
     phone: string;
     password: string;
@@ -12,8 +10,6 @@ export interface UserData {
 
 export interface UserData_delPassword {
     fullName: string;
-    companyName: string;
-    companyWebsite: string;
     email: string;
     phone: string;
     password?: string;
@@ -24,6 +20,7 @@ export interface UserData_delPassword {
     status?: false;
     pathaoMerchantInfo?: IMerchantInfo;
     apiSecret?: string;
+    companies: object;
     apiSecretStatus?: boolean;
     createdAt?: Date;
     updatedAt?: Date;

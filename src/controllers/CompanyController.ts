@@ -34,7 +34,10 @@ export class CompanyController {
             }
 
             const createdCompany: ICompany =
-                await this.companyService.createCompany(userId, company);
+                await this.companyService.createCompany(
+                    userId as string,
+                    company as ICompany,
+                );
 
             this.logger.info("Company created successfully", {
                 companyId: createdCompany._id,
@@ -74,9 +77,9 @@ export class CompanyController {
             }
 
             const result = await this.companyService.addUserToCompany(
-                companyId,
-                userId,
-                role,
+                companyId as string, // Type assertion
+                userId as string,
+                role as "admin" | "employee" | "owner" | "manager",
             );
 
             this.logger.info("User added to company successfully", {

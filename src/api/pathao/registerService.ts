@@ -38,7 +38,7 @@ export async function registerInPathao(userData: IUser, maxRetries = 5) {
             name: `${userData.fullName}-${Math.random()
                 .toString(36)
                 .substring(2, 7)}`,
-            owner_name: `${userData.companyName}-${Math.random()
+            owner_name: `${userData.fullName}-${Math.random()
                 .toString(36)
                 .substring(2, 7)}`,
             owner_email: generateRandomEmail(userData.email as string),

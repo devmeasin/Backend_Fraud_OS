@@ -22,7 +22,7 @@ export class OTPService {
 
     async generateOTP(user: UserDocument): Promise<string> {
         // Check for active OTP
-        const activeOTP = await this.hasActiveOTP(user._id);
+        const activeOTP = await this.hasActiveOTP(user._id.toString());
         if (activeOTP) {
             throw createHttpError(
                 429,
