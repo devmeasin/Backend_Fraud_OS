@@ -10,7 +10,7 @@ WORKDIR /home/node/app
 COPY package*.json ./
 
 # Update npm to the latest version and install dependencies
-RUN npm install -g npm@latest && npm ci
+RUN npm install -g npm@latest --unsafe-perm && npm ci
 
 # Copy all source files and build the application
 COPY . .
