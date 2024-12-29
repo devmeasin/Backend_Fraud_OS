@@ -249,11 +249,19 @@ export class AuthController {
                 session,
             );
 
-            // Link company to user
-            user.companies?.push({
+            // First verify the companies array exists, if not initialize it
+            if (!user.companies) {
+                user.companies = [];
+            }
+
+            // Then push the new company data
+            user.companies.push({
                 companyId: companyData._id,
                 role: "owner",
             });
+
+            await user.save({ session }); // Save with the transaction
+
             await user.save({ session }); // Save the updated user in the transaction
 
             this.logger.info("User has been registered", { id: user._id });

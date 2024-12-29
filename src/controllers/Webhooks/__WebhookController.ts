@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { WebhookService } from "../services/WebhookService";
+import { WebhookService } from "../../services/Webhooks/__WebhookService";
 
 export class WebhookController {
     private webhookService: WebhookService;
