@@ -4,6 +4,7 @@ export interface IWebhook extends Document {
     companyId: Schema.Types.ObjectId;
     platform: "wooCommerce" | "shopify" | "daraz";
     channelName: string;
+    name: string;
     storeUrl: string; // Store URL for WooCommerce
     eventTypes: string[];
     deliveryUrl: string;
@@ -29,6 +30,7 @@ const WebhookSchema = new Schema<IWebhook>(
             enum: ["wooCommerce", "shopify", "daraz"],
             required: true,
         },
+        name: { type: String, required: true },
         channelName: { type: String, required: true },
         storeUrl: { type: String, required: true }, // Store URL is now part of the schema
         eventTypes: { type: [String], required: true },

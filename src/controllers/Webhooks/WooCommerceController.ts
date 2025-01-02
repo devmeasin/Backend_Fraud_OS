@@ -15,7 +15,8 @@ class WooCommerceController {
     ): Promise<void> {
         try {
             const authReq = req as AuthRequest;
-            const { channelName, storeUrl, credentials, companyId } = req.body;
+            const { name, channelName, storeUrl, credentials, companyId } =
+                req.body;
             const cid = authReq.auth.cid || (companyId as string);
 
             // Validate WooCommerce credentials
@@ -35,6 +36,7 @@ class WooCommerceController {
 
             // Register the WooCommerce channel
             const webhook = await registerWooCommerceChannel(
+                name as string,
                 cid,
                 storeUrl as string,
                 credentials as { key: string; secret: string },

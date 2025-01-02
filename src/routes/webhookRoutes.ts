@@ -13,6 +13,20 @@ const webhookController = new WebhookController();
 
 const wooCommerceController = new WooCommerceController();
 
+// get all channel data
+router.get(
+    "/channels",
+    authenticate,
+    (req: Request, res: Response, next: NextFunction) =>
+        webhookController.getAllChannels(req, res, next),
+);
+router.get(
+    "/channel/:channelId",
+    authenticate,
+    (req: Request, res: Response, next: NextFunction) =>
+        webhookController.getChannelById(req, res, next),
+);
+
 // Unified webhook receiver
 router.post(
     "/woocommerce/register",
@@ -20,6 +34,7 @@ router.post(
     (req: Request, res: Response, next: NextFunction) =>
         wooCommerceController.registerChannel(req, res, next),
 );
+
 router.post(
     "/:channelName/:companyId",
     verifyWebhook,

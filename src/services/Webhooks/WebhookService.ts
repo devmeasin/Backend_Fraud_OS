@@ -7,6 +7,7 @@ import { generateApiSecret } from "../API_SecretService";
  * Registers a new WooCommerce channel for a company.
  */
 export const registerWooCommerceChannel = async (
+    name: string,
     companyId: string,
     storeUrl: string,
     credentials: { key: string; secret: string },
@@ -57,6 +58,7 @@ export const registerWooCommerceChannel = async (
 
     // Save webhook configuration to database
     const webhook = new Webhook({
+        name,
         companyId,
         platform: channelName,
         channelName,

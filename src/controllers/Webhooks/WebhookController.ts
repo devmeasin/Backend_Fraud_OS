@@ -6,6 +6,45 @@ import { Order } from "../../models/orderChannel/orderModel";
 import logger from "../../utils/logger";
 
 class WebhookController {
+    async getAllChannels(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ): Promise<void> {
+        try {
+            const channels = await Webhook.find({});
+            logger.info(`fetch all channels data..`);
+            res.status(200).json({
+                message: "all webhooks channel data!",
+                channels: channels,
+            });
+        } catch (error) {
+            next(createHttpError(500, "failed to fetch all channels data.."));
+        }
+    }
+
+    async getChannelById(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ): Promise<void> {
+        const { channelId } = req.params;
+
+        try {
+            const channelInfo = await Webhook.findById(channelId);
+            logger.info(
+                `fetch ${
+                    channelInfo?._id as string
+                } ${channelInfo?.channelName} channels data..`,
+            );
+            res.status(200).json({
+                message: "webhooks channel data!",
+                channel: channelInfo,
+            });
+        } catch (error) {
+            next(createHttpError(500, "failed to fetch all channels data.."));
+        }
+    }
     /**
      * Handles incoming webhooks
      */
