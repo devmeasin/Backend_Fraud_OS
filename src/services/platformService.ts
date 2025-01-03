@@ -38,3 +38,35 @@ export const registerWooCommerceWebhook = async (
 
     return webhooks.join(","); // Concatenate multiple webhook IDs if needed
 };
+
+export const registerShopifyWebhook = async (
+    storeUrl: string,
+    deliveryUrl: string,
+    credentials: { accessToken: string },
+    eventTypes: string[],
+): Promise<string[]> => {
+    const webhookIds = [];
+    for (const event of eventTypes) {
+        try {
+            const response = await axios.post(
+                `${storeUrl}/admin/api/2023-01/webhooks.json`,
+                {
+                    webhook: {
+                        topic: event,
+                        address: deliveryUrl,
+                        format: "json",
+                    },
+                },
+                {
+                    headers: {
+                        "X-Shopify-Access-Token": credentials.accessToken,
+                    },
+                },
+            );
+            webhookIds.push(response.data.webhook.id);
+        } catch (error) {
+            console.error("Error registering Shopify webhook:", error);
+        }
+    }
+    return webhookIds as string[];
+};

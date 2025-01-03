@@ -11,11 +11,15 @@ export interface IWebhook extends Document {
     credentials: {
         key: string;
         secret: string;
+        accessToken?: string;
     };
     webhookSecret?: string;
     integrationId: string;
     enabled: boolean;
     metadata?: any;
+    shopifySpecificFields?: {
+        shopifyWebhookId?: string; // For Shopify-specific webhook IDs
+    };
 }
 
 const WebhookSchema = new Schema<IWebhook>(
@@ -36,13 +40,17 @@ const WebhookSchema = new Schema<IWebhook>(
         eventTypes: { type: [String], required: true },
         deliveryUrl: { type: String, required: true, unique: true },
         credentials: {
-            key: { type: String, required: true },
-            secret: { type: String, required: true },
+            key: { type: String },
+            secret: { type: String },
+            accessToken: { type: String },
         },
         webhookSecret: { type: String },
         integrationId: { type: String, required: true },
         enabled: { type: Boolean, default: true },
         metadata: { type: Schema.Types.Mixed },
+        shopifySpecificFields: {
+            shopifyWebhookId: { type: String }, // For Shopify-specific webhook IDs
+        },
     },
     { timestamps: true },
 );
