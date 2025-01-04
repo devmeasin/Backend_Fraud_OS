@@ -2,7 +2,7 @@ import { Schema, model, Document } from "mongoose";
 
 export interface IWebhook extends Document {
     companyId: Schema.Types.ObjectId;
-    platform: "wooCommerce" | "shopify" | "daraz";
+    platform: "woocommerce" | "shopify" | "daraz";
     channelName: string;
     name: string;
     storeUrl: string; // Store URL for WooCommerce
@@ -31,7 +31,7 @@ const WebhookSchema = new Schema<IWebhook>(
         },
         platform: {
             type: String,
-            enum: ["wooCommerce", "shopify", "daraz"],
+            enum: ["woocommerce", "shopify", "daraz"],
             required: true,
         },
         name: { type: String, required: true },
@@ -40,9 +40,9 @@ const WebhookSchema = new Schema<IWebhook>(
         eventTypes: { type: [String], required: true },
         deliveryUrl: { type: String, required: true, unique: true },
         credentials: {
-            key: { type: String },
-            secret: { type: String },
-            accessToken: { type: String },
+            key: { type: String, default: "" },
+            secret: { type: String, default: "" },
+            accessToken: { type: String, default: "" },
         },
         webhookSecret: { type: String },
         integrationId: { type: String, required: true },

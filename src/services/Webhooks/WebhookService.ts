@@ -1,5 +1,8 @@
 import { Webhook } from "../../models/webhooks/webhookModel";
-import { registerWooCommerceWebhook } from "../platformService";
+import {
+    registerShopifyWebhook,
+    registerWooCommerceWebhook,
+} from "../platformService";
 import { generateUniqueDeliveryUrl } from "../../utils/platformHelper";
 import { generateApiSecret } from "../API_SecretService";
 
@@ -13,7 +16,7 @@ export const registerWooCommerceChannel = async (
     credentials: { key: string; secret: string },
 ) => {
     // Register webhooks for WooCommerce
-    const channelName = "wooCommerce";
+    const channelName = "woocommerce";
 
     // Check for existing channel
 
@@ -72,4 +75,72 @@ export const registerWooCommerceChannel = async (
     });
 
     return await webhook.save();
+};
+
+export const registerShopifyChannel = async (
+    name: string,
+    companyId: string,
+    storeUrl: string,
+    credentials: { accessToken: string },
+) => {
+    const channelName = "shopify";
+
+    // Check for existing channel
+
+    const existingChannel = await Webhook.findOne({
+        companyId,
+        storeUrl,
+    });
+    if (existingChannel) {
+        throw new Error(
+            `Channel "${channelName}" already exists for this company.`,
+        );
+    }
+
+    const eventTypes = [
+        "orders/create",
+        "orders/updated",
+        "products/create",
+        "products/update",
+        "products/delete",
+    ];
+
+    // Generate a temporary integration ID to create a unique delivery URL
+    const tempIntegrationId = `${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2, 8)}`;
+
+    const deliveryUrl = generateUniqueDeliveryUrl(
+        companyId,
+        channelName,
+        tempIntegrationId,
+    );
+
+    const webhookSecret = generateApiSecret();
+
+    const webhookIds = await registerShopifyWebhook(
+        storeUrl,
+        deliveryUrl,
+        webhookSecret,
+        credentials,
+        eventTypes,
+    );
+
+    const webhook = new Webhook({
+        name,
+        companyId,
+        platform: channelName,
+        channelName: channelName,
+        storeUrl,
+        eventTypes,
+        deliveryUrl,
+        credentials,
+        integrationId: webhookIds,
+        enabled: true,
+        shopifySpecificFields: {
+            shopifyWebhookId: webhookIds,
+        },
+    });
+
+    await webhook.save();
 };
