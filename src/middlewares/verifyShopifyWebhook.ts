@@ -34,6 +34,9 @@ export const verifyShopifyWebhook = async (
         }
 
         // Compute the HMAC-SHA256 signature
+
+        // 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 token
+
         const rawBody =
             ((req as any).rawBody as string | undefined) ||
             JSON.stringify(req.body); // Ensure raw body is available

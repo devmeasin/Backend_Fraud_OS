@@ -3,6 +3,7 @@ import { validateShopifyCredentials } from "../../services/Webhooks/ShopifyPlatf
 import { registerShopifyChannel } from "../../services/Webhooks/WebhookService";
 import { AuthRequest } from "../../types";
 import logger from "../../utils/logger";
+import createHttpError from "http-errors";
 
 class ShopifyController {
     async registerChannel(req: Request, res: Response, next: NextFunction) {
@@ -43,9 +44,8 @@ class ShopifyController {
                 logger.warn(
                     `Invalid Shopify credentials. ${storeUrl} for companyId: ${cid}, channelName: ${channelName}`,
                 );
-                return res
-                    .status(400)
-                    .json({ message: "Invalid Shopify credentials." });
+
+                throw createHttpError(401, "Invalid Shopify credentials.");
             }
 
             const webhook = await registerShopifyChannel(

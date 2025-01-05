@@ -3,6 +3,7 @@ import { registerWooCommerceChannel } from "../../services/Webhooks/WebhookServi
 import { validateWooCommerceCredentials } from "../../services/Webhooks/WooPlatformService";
 import logger from "../../utils/logger";
 import { AuthRequest } from "../../types";
+import createHttpError from "http-errors";
 
 class WooCommerceController {
     /**
@@ -28,10 +29,7 @@ class WooCommerceController {
                 logger.warn(
                     `Invalid WooCommerce credentials ${storeUrl} for companyId: ${cid}, channelName: ${channelName}`,
                 );
-                res.status(400).json({
-                    message: "Invalid WooCommerce credentials",
-                });
-                return;
+                throw createHttpError(401, "Invalid WooCommerce credentials");
             }
 
             // Register the WooCommerce channel

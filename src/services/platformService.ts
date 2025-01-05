@@ -42,14 +42,13 @@ export const registerWooCommerceWebhook = async (
 export const registerShopifyWebhook = async (
     storeUrl: string,
     deliveryUrl: string,
-    webhookSecret: string,
     credentials: { accessToken: string },
     eventTypes: string[],
-): Promise<string> => {
-    const webhooks = await Promise.all(
+): Promise<string[]> => {
+    const webhookIds = await Promise.all(
         eventTypes.map(async (event) => {
             const response = await axios.post(
-                `${storeUrl}/admin/api/2025-04/webhooks.json`,
+                `${storeUrl}/admin/api/2025-01/webhooks.json`,
                 {
                     webhook: {
                         topic: event,
@@ -60,11 +59,13 @@ export const registerShopifyWebhook = async (
                 {
                     headers: {
                         "X-Shopify-Access-Token": credentials.accessToken,
+                        "Content-Type": "application/json",
                     },
                 },
             );
             return response.data.webhook.id as string;
         }),
     );
-    return webhooks.join(",");
+
+    return webhookIds;
 };

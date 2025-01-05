@@ -14,13 +14,8 @@ export const validateWooCommerceCredentials = async (
                 password: credentials.secret,
             },
         });
-
         return response.status === 200;
     } catch (error) {
-        console.error(
-            "WooCommerce credential validation failed:",
-            error instanceof Error ? error.message : error,
-        );
         return false;
     }
 };

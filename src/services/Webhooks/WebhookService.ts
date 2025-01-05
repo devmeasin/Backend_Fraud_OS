@@ -102,7 +102,6 @@ export const registerShopifyChannel = async (
         "orders/updated",
         "products/create",
         "products/update",
-        "products/delete",
     ];
 
     // Generate a temporary integration ID to create a unique delivery URL
@@ -121,10 +120,11 @@ export const registerShopifyChannel = async (
     const webhookIds = await registerShopifyWebhook(
         storeUrl,
         deliveryUrl,
-        webhookSecret,
         credentials,
         eventTypes,
     );
+
+    console.log("XXXXXXXX", webhookIds);
 
     const webhook = new Webhook({
         name,
@@ -136,6 +136,7 @@ export const registerShopifyChannel = async (
         deliveryUrl,
         credentials,
         integrationId: webhookIds,
+        webhookSecret,
         enabled: true,
         shopifySpecificFields: {
             shopifyWebhookId: webhookIds,

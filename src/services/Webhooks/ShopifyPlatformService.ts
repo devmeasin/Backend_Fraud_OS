@@ -15,10 +15,6 @@ export const validateShopifyCredentials = async (
         });
         return response.status === 200;
     } catch (error) {
-        console.error(
-            "Shopify credential validation failed:",
-            error instanceof Error ? error.message : error,
-        );
         return false;
     }
 };
