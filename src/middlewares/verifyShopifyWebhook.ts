@@ -41,7 +41,7 @@ export const verifyShopifyWebhook = async (
             ((req as any).rawBody as string | undefined) ||
             JSON.stringify(req.body); // Ensure raw body is available
         const computedSignature = crypto
-            .createHmac("sha256", webhook.webhookSecret as string)
+            .createHmac("sha256", webhook?.webhookSecret as string)
             .update(rawBody, "utf8")
             .digest("base64");
 

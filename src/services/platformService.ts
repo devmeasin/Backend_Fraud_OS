@@ -44,7 +44,7 @@ export const registerShopifyWebhook = async (
     deliveryUrl: string,
     credentials: { accessToken: string },
     eventTypes: string[],
-): Promise<string[]> => {
+): Promise<string> => {
     const webhookIds = await Promise.all(
         eventTypes.map(async (event) => {
             const response = await axios.post(
@@ -52,7 +52,9 @@ export const registerShopifyWebhook = async (
                 {
                     webhook: {
                         topic: event,
-                        address: deliveryUrl,
+                        address:
+                            "https://c35e-103-216-57-34.ngrok-free.app" +
+                            deliveryUrl,
                         format: "json",
                     },
                 },
@@ -67,5 +69,6 @@ export const registerShopifyWebhook = async (
         }),
     );
 
-    return webhookIds;
+    // Join the webhook IDs into a single string
+    return webhookIds.join(",");
 };

@@ -2,6 +2,8 @@ import express, { Request, Response, NextFunction } from "express";
 // import { WebhookController } from "../controllers/Webhooks/__WebhookController";
 // const webhookController = new WebhookController();
 
+import bodyParser from "body-parser";
+
 const router = express.Router();
 
 import WebhookController from "../controllers/Webhooks/WebhookController";
