@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 interface Location {
     label?: string;
     address: string;
+    subArea?: string;
     district?: string;
     division?: string;
     postCode?: string;
@@ -38,6 +39,7 @@ const LocationSchema = new Schema<Location>(
     {
         label: { type: String, default: null },
         address: { type: String, required: true },
+        subArea: { type: String, default: null },
         district: { type: String, default: null },
         division: { type: String, default: null },
         postCode: { type: String, default: null },

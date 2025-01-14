@@ -129,7 +129,7 @@ const orderSchema = new Schema<IOrder>(
             required: true,
             default: OrderSource.UNKNOWN,
         },
-        internalId: { type: String, unique: true },
+        internalId: { type: String },
         externalId: { type: String },
         status: {
             type: String,
@@ -219,30 +219,45 @@ orderSchema.index({ status: 1 });
 
 // Pre-save hook for generating dynamic internalId
 orderSchema.pre<IOrder>("save", async function (next) {
-    if (this.isNew) {
-        const prefixMap = {
-            [OrderSource.WOOCOMMERCE]: "WOO",
-            [OrderSource.SHOPIFY]: "SHO",
-            [OrderSource.DARAZ]: "DRZ",
-            [OrderSource.WHATSAPP]: "WHA",
-            [OrderSource.SYSTEM]: "EOS",
-            [OrderSource.PHONE_CALL]: "PHC",
-            [OrderSource.UNKNOWN]: "UNK",
+    // If this is a new document and `internalId` is not already set
+    if (this.isNew && !this.internalId) {
+        // Ensure companyId exists (optional logic)
+        if (!this.companyId) {
+            return next(); // Skip ID generation and proceed
+        }
+
+        // Prefix mapping for the `source`
+        const prefixMap: { [key: string]: string } = {
+            WOOCOMMERCE: "WOO",
+            SHOPIFY: "SHO",
+            DARAZ: "DRZ",
+            WHATSAPP: "WHA",
+            SYSTEM: "EOS",
+            PHONE_CALL: "PHC",
+            UNKNOWN: "UNK",
         };
 
-        const prefix =
-            prefixMap[this.source as keyof typeof prefixMap] || "ORD";
-        const lastOrder = await Order.findOne({ companyId: this.companyId })
-            .sort({ createdAt: -1 })
-            .select("internalId")
-            .exec();
+        const prefix = prefixMap[this.source.toUpperCase()] || "ORD";
 
-        const lastId = lastOrder?.internalId?.split("-")[1] || "0000";
-        const nextId = (parseInt(lastId, 10) + 1).toString().padStart(4, "0");
+        try {
+            // Fetch the last order for the same `companyId` to determine the next ID
+            const lastOrder = await Order.findOne({ companyId: this.companyId })
+                .sort({ createdAt: -1 }) // Sort by creation date to get the latest
+                .select("internalId");
 
-        this.internalId = `${prefix}-${nextId}`;
+            const lastId = lastOrder?.internalId?.split("-")[1] || "0000";
+            const nextId = (parseInt(lastId, 10) + 1)
+                .toString()
+                .padStart(4, "0");
+
+            // Generate the new `internalId`
+            this.internalId = `${prefix}-${nextId}`;
+        } catch (err) {
+            console.error("Error generating internalId:", err);
+        }
     }
-    next();
+
+    next(); // Proceed to the next middleware or save the document
 });
 
 // Order Model

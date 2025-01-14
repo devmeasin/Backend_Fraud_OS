@@ -33,10 +33,8 @@ export const registerWooCommerceChannel = async (
     const eventTypes = [
         "product.created",
         "product.updated",
-        "product.deleted",
         "order.created",
         "order.updated",
-        "order.deleted",
     ];
 
     // Generate a temporary integration ID to create a unique delivery URL
@@ -81,7 +79,7 @@ export const registerShopifyChannel = async (
     name: string,
     companyId: string,
     storeUrl: string,
-    credentials: { accessToken: string },
+    credentials: { secret: string; accessToken: string },
 ) => {
     const channelName = "shopify";
 
@@ -115,7 +113,7 @@ export const registerShopifyChannel = async (
         tempIntegrationId,
     );
 
-    const webhookSecret = generateApiSecret();
+    const webhookSecret = credentials?.secret;
 
     const webhookIds = await registerShopifyWebhook(
         storeUrl,
@@ -123,8 +121,6 @@ export const registerShopifyChannel = async (
         credentials,
         eventTypes,
     );
-
-    console.log("XXXXXXXX", webhookIds);
 
     const webhook = new Webhook({
         name,

@@ -17,8 +17,17 @@ import webhookRoutes from "./routes/webhookRoutes";
 import orderRoutes from "./routes/orderRoutes";
 import customerRoutes from "./routes/customerRoutes";
 import deliveryPartnerRoutes from "./routes/deliveryPartnersRoutes";
+import bodyParser from "body-parser";
 
 const app = express();
+
+app.use((req, res, next) => {
+    if (req.path.startsWith("/api/v1/webhooks")) {
+        bodyParser.raw({ type: "application/json" })(req, res, next);
+    } else {
+        next();
+    }
+});
 
 app.use(express.json());
 app.use(

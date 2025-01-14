@@ -2,8 +2,6 @@ import express, { Request, Response, NextFunction } from "express";
 // import { WebhookController } from "../controllers/Webhooks/__WebhookController";
 // const webhookController = new WebhookController();
 
-import bodyParser from "body-parser";
-
 const router = express.Router();
 
 import WebhookController from "../controllers/Webhooks/WebhookController";
@@ -11,12 +9,15 @@ import WooCommerceController from "../controllers/Webhooks/WooCommerceController
 import authenticate from "../middlewares/authenticate";
 import { verifyWebhook } from "../middlewares/verifyWebhook";
 import ShopifyController from "../controllers/Webhooks/ShopifyController";
+import bodyParser from "body-parser";
 
 const webhookController = new WebhookController();
 
 const wooCommerceController = new WooCommerceController();
 
 const shopifyController = new ShopifyController();
+
+const rawBodyParser = bodyParser.raw({ type: "application/json" });
 
 // get all channel data
 router.get(

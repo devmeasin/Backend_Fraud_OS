@@ -230,17 +230,20 @@ export class OrderController {
             const { orderId } = req.params;
             const { status } = req.body;
 
-            if (!Object.values(OrderStatus).includes(status)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid order status",
-                });
-            }
+            // if (!Object.values(OrderStatus).includes(status as OrderStatus)) {
+            //     return res.status(400).json({
+            //         success: false,
+            //         message: "Invalid order status",
+            //     });
+            // }
 
+            if (!Object.values(OrderStatus).includes(status as OrderStatus)) {
+                throw new Error(`Invalid status: ${status}`);
+            }
             const order = await this.orderService.updateOrderStatus(
                 orderId,
                 cid,
-                status,
+                status as OrderStatus,
             );
 
             if (!order) {

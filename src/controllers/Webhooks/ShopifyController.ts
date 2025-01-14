@@ -17,7 +17,7 @@ class ShopifyController {
                 name: string;
                 companyId: string;
                 storeUrl: string;
-                credentials: { accessToken: string };
+                credentials: { secret: string; accessToken: string };
             } = req.body;
             const authReq = req as AuthRequest;
             const cid = authReq.auth.cid || companyId;
@@ -52,7 +52,7 @@ class ShopifyController {
                 name,
                 cid,
                 storeUrl,
-                credentials as { accessToken: string },
+                credentials as { secret: string; accessToken: string },
             );
 
             res.status(201).json({

@@ -118,6 +118,13 @@ export class OrderService {
         companyId: string,
         status: OrderStatus,
     ): Promise<IOrder | null> {
+        // const existingOrder = await Order.findOne({ _id: orderId, companyId });
+        // if (!existingOrder) {
+        //     throw new Error(
+        //         `Order not found with ID: ${orderId} and companyId: ${companyId}`,
+        //     );
+        // }
+
         try {
             const dateField = this.getStatusDateField(status);
             const update: any = {
@@ -146,7 +153,7 @@ export class OrderService {
 
     async getOrdersWithPagination(filters: any, skip: number, limit: number) {
         const [orders, total] = await Promise.all([
-            Order.find(filters)
+            Order.find(filters as any)
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)

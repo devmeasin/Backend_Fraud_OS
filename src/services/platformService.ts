@@ -21,7 +21,8 @@ export const registerWooCommerceWebhook = async (
                 {
                     name: event.toLocaleUpperCase(),
                     topic: event,
-                    delivery_url: `${Config.API_GATEWAY}${deliveryUrl}`, // Replaced dynamically
+                    delivery_url: `https://edcd-103-216-57-34.ngrok-free.app${deliveryUrl}`, // Replaced dynamically
+                    // delivery_url: `${Config.API_GATEWAY}${deliveryUrl}`, // Replaced dynamically
                     secret: webhookSecret,
                 },
                 {

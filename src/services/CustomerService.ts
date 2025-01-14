@@ -1,4 +1,3 @@
-import { Types } from "mongoose";
 import Customer, { ICustomer } from "../models/customerModel";
 import createHttpError from "http-errors";
 
